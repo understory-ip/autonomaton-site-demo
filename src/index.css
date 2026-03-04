@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Grove Autonomaton Pattern Playground
+ *
+ * Design principles:
+ * - Pipeline visualization is the hero element
+ * - Zones are color-coded consistently (green/yellow/red)
+ * - Monospace for telemetry/config, sans-serif for UI
+ * - Numbers are prominent (engineers trust numbers)
+ * - Animations feel satisfying, not decorative
+ */
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-100 font-sans antialiased;
+  }
+
+  /* Scrollbar styling for the telemetry stream */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.slate.600') theme('colors.slate.800');
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: theme('colors.slate.800');
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: theme('colors.slate.600');
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* Pipeline stage states */
+  .stage-idle {
+    @apply bg-pipeline-idle text-slate-400;
+  }
+
+  .stage-active {
+    @apply bg-pipeline-active text-white;
+    animation: stage-pulse 1.5s ease-in-out infinite;
+  }
+
+  .stage-complete {
+    @apply bg-pipeline-complete text-white;
+  }
+
+  .stage-error {
+    @apply bg-pipeline-error text-white;
+    animation: stage-shake 0.5s ease-in-out;
+  }
+
+  /* Zone badges */
+  .zone-green {
+    @apply bg-zone-green/20 text-zone-green border-zone-green;
+  }
+
+  .zone-yellow {
+    @apply bg-zone-yellow/20 text-zone-yellow border-zone-yellow;
+  }
+
+  .zone-red {
+    @apply bg-zone-red/20 text-zone-red border-zone-red;
+  }
+
+  /* Tier badges */
+  .tier-0 { @apply bg-tier-0/20 text-tier-0 border-tier-0; }
+  .tier-1 { @apply bg-tier-1/20 text-tier-1 border-tier-1; }
+  .tier-2 { @apply bg-tier-2/20 text-tier-2 border-tier-2; }
+  .tier-3 { @apply bg-tier-3/20 text-tier-3 border-tier-3; }
+
+  /* Config editor */
+  .config-editor {
+    @apply font-mono text-sm bg-slate-950 text-slate-300 p-4 rounded-lg;
+    @apply border border-slate-700 focus:border-blue-500 focus:outline-none;
+    @apply resize-none;
+    tab-size: 2;
+  }
+
+  /* Telemetry entry */
+  .telemetry-entry {
+    @apply font-mono text-xs bg-slate-950 p-2 rounded border-l-2 border-slate-700;
+    @apply hover:border-blue-500 cursor-pointer transition-colors;
+  }
+
+  .telemetry-entry.selected {
+    @apply border-blue-500 bg-blue-950/30;
+  }
+}
+
+@layer utilities {
+  /* Config ripple - the "no deploy" proof */
+  .config-ripple {
+    @apply absolute inset-0 rounded-lg bg-blue-500/30;
+    animation: ripple 0.6s ease-out forwards;
+  }
+
+  /* Cost evaporation - the ratchet moment */
+  .cost-evaporating {
+    animation: evaporate 0.8s ease-out forwards;
+  }
+}
+
+/* Keyframe animations */
+@keyframes stage-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 theme('colors.blue.500 / 40%');
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 0 8px theme('colors.blue.500 / 0%');
+  }
+}
+
+@keyframes stage-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes evaporate {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+  }
+}
