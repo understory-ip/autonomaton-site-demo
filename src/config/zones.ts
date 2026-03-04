@@ -49,7 +49,22 @@ export const defaultZonesSchema: ZonesSchema = {
  * Serialize zones schema to YAML-like string for display
  */
 export function serializeZonesSchema(schema: ZonesSchema): string {
-  let yaml = 'zones:\n'
+  let yaml = `# ZONES SCHEMA — Human-Readable Governance
+#
+# This file defines the sovereignty guardrails:
+#   GREEN  → System executes autonomously
+#   YELLOW → System proposes, human approves
+#   RED    → Human-only, system surfaces info
+#
+# Zones are extensible. Add new zones, redefine
+# what actions each zone allows, change the
+# governance model to fit your domain.
+#
+# This file is READ-ONLY in this demo to preserve
+# the core pattern. In production, it's just config.
+
+zones:
+`
 
   for (const [name, zone] of Object.entries(schema.zones)) {
     yaml += `  ${name}:\n`

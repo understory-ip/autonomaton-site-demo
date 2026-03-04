@@ -32,13 +32,13 @@ export default function App() {
   const dispatch = useAppDispatch()
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+    <div className="h-screen bg-slate-900 text-slate-100 flex flex-col overflow-hidden">
       <Header />
       <PipelineVisualization />
       <Dashboard />
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden">
+      <main className="flex-1 flex min-h-0 overflow-hidden">
         <InteractionPane />
         <ConfigEditor />
       </main>

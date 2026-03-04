@@ -10,7 +10,7 @@
  * - Persistent Prompt Tray above input
  */
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useApp, useTutorial, usePendingApproval } from '../../state/context'
 import { processInteraction, continueAfterApproval, rejectInteraction } from '../../services'
 import type { Interaction } from '../../state/types'
@@ -101,10 +101,16 @@ export function InteractionPane() {
   const hasSkill = (intent: string) =>
     state.skills.some((s) => s.intentMatch === intent)
 
+  // Auto-scroll to bottom when new interactions or approval card appears
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [state.interactions, pendingApproval])
+
   return (
-    <div className="flex-1 border-r border-slate-700 flex flex-col">
+    <div className="flex-1 border-r border-slate-700 flex flex-col min-h-0">
       {/* Interaction List */}
-      <div className="flex-1 p-6 overflow-y-auto scrollbar-thin">
+      <div className="flex-1 p-6 overflow-y-auto scrollbar-thin min-h-0">
         {state.interactions.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-xl font-semibold text-white mb-2">Welcome to the Pattern Playground</p>
@@ -165,6 +171,8 @@ export function InteractionPane() {
                 processing={processing}
               />
             ))}
+            {/* Scroll anchor with breathing room */}
+            <div ref={messagesEndRef} className="h-4 flex-shrink-0" />
           </div>
         )}
 
