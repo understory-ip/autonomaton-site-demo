@@ -8,7 +8,7 @@
  * Telemetry → Recognition → Compilation → Approval → Execution
  */
 
-import { usePipeline } from '../../state/context'
+import { usePipeline, useAppDispatch } from '../../state/context'
 import type { PipelineStage as PipelineStageType } from '../../state/types'
 import { PipelineStage, STAGE_META } from './PipelineStage'
 import { PipelineConnector } from './PipelineConnector'
@@ -23,6 +23,7 @@ const STAGES: PipelineStageType[] = [
 
 export function PipelineVisualization() {
   const pipeline = usePipeline()
+  const dispatch = useAppDispatch()
 
   return (
     <section className="border-b border-slate-700 bg-slate-800/50 py-6">
@@ -62,6 +63,12 @@ export function PipelineVisualization() {
               <span className="text-slate-500">Proposed fix: </span>
               {pipeline.haltReason.proposedFix}
             </div>
+            <button
+              onClick={() => dispatch({ type: 'RESET_PIPELINE' })}
+              className="mt-3 text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded transition-colors"
+            >
+              Clear &amp; Reset Pipeline
+            </button>
           </div>
         </div>
       )}

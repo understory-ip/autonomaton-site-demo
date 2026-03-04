@@ -18,16 +18,18 @@
  * └─────────────────────────────────────────────────────────────┘
  */
 
-import { useAppState } from './state/context'
+import { useAppState, useAppDispatch } from './state/context'
 import { PipelineVisualization } from './components/Pipeline'
 import { Dashboard } from './components/Dashboard'
 import { InteractionPane } from './components/Interaction'
 import { ConfigEditor } from './components/Config'
 import { TelemetryStream } from './components/Telemetry'
 import { Header } from './components/Header'
+import { SkillProposal } from './components/Skills'
 
 export default function App() {
   const { tutorial } = useAppState()
+  const dispatch = useAppDispatch()
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
@@ -48,7 +50,10 @@ export default function App() {
         The Grove Autonomaton Pattern • CC BY 4.0 • thegrovefoundation.org
       </footer>
 
-      {/* Tutorial overlay would go here */}
+      {/* Skill Proposal Toast */}
+      <SkillProposal />
+
+      {/* Tutorial overlay */}
       {tutorial.active && tutorial.currentStep === 0 && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-slate-800 border border-slate-600 rounded-xl p-8 max-w-lg text-center">
@@ -64,10 +69,16 @@ export default function App() {
               and authors its own evolution — inside zones you control?
             </p>
             <div className="flex gap-4 justify-center">
-              <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+              <button
+                onClick={() => dispatch({ type: 'START_TUTORIAL' })}
+                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
                 Start Tutorial
               </button>
-              <button className="text-slate-400 hover:text-slate-300 px-4 py-2 text-sm">
+              <button
+                onClick={() => dispatch({ type: 'SKIP_TUTORIAL' })}
+                className="text-slate-400 hover:text-slate-300 px-4 py-2 text-sm"
+              >
                 Skip to Sandbox →
               </button>
             </div>
