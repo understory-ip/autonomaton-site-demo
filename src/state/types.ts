@@ -256,6 +256,7 @@ export type AppAction =
   // Mode
   | { type: 'SET_MODE'; mode: Mode }
   | { type: 'SET_MODEL_CONFIG'; tier: 1 | 2 | 3; config: Partial<ModelConfig> }
+  | { type: 'SET_ALL_MODEL_CONFIGS'; config: Partial<ModelConfig> }
 
   // Config
   | { type: 'UPDATE_ROUTING_CONFIG'; config: RoutingConfig }

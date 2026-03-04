@@ -131,6 +131,16 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       }
 
+    case 'SET_ALL_MODEL_CONFIGS':
+      return {
+        ...state,
+        modelConfig: {
+          tier1: { ...state.modelConfig.tier1, ...action.config },
+          tier2: { ...state.modelConfig.tier2, ...action.config },
+          tier3: { ...state.modelConfig.tier3, ...action.config },
+        },
+      }
+
     // =========================================================================
     // CONFIG
     // =========================================================================
