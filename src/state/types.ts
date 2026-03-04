@@ -90,6 +90,7 @@ export type InteractionStatus =
   | 'pending'    // In pipeline
   | 'approved'   // Human approved (yellow zone)
   | 'rejected'   // Human rejected (yellow zone)
+  | 'executing'  // Live API call in flight (v0.5.0)
   | 'completed'  // Successfully executed
   | 'halted'     // Pipeline halted (Jidoka)
 
@@ -278,6 +279,7 @@ export type AppAction =
   | { type: 'REJECT_INTERACTION' }
   | { type: 'COMPLETE_INTERACTION'; response: string; telemetry: Partial<TelemetryEntry> }
   | { type: 'ADD_INTERACTION'; interaction: Interaction }
+  | { type: 'UPDATE_INTERACTION_STATUS'; id: string; status: InteractionStatus }
 
   // Skills
   | { type: 'INCREMENT_PATTERN'; intent: string }

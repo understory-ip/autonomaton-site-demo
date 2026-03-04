@@ -343,6 +343,19 @@ function InteractionCard({ interaction, isSelected, hasSkill, onRunAgain, proces
           Processing...
         </div>
       )}
+      {interaction.status === 'executing' && (
+        <div className="mt-4 p-4 border border-grove-border bg-grove-bg2">
+          <div className="flex items-center gap-3 font-mono text-xs text-grove-amber">
+            <div className="w-2 h-2 bg-grove-amber animate-pulse" />
+            <span className="uppercase tracking-widest">
+              Awaiting Tier {interaction.tier} Cognition...
+            </span>
+          </div>
+          <div className="font-mono text-[10px] text-grove-text-dim mt-1">
+            Provider: {interaction.mode === 'interactive' ? 'LIVE API CALL' : 'DEMO'}
+          </div>
+        </div>
+      )}
       {interaction.status === 'rejected' && (
         <div className="text-xs text-grove-red mt-2">
           ✗ Rejected by user

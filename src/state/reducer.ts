@@ -270,6 +270,15 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ),
       }
 
+    case 'UPDATE_INTERACTION_STATUS':
+      // v0.5.0: Update interaction status (e.g., to 'executing' during API call)
+      return {
+        ...state,
+        interactions: state.interactions.map((i) =>
+          i.id === action.id ? { ...i, status: action.status } : i
+        ),
+      }
+
     case 'COMPLETE_INTERACTION': {
       const currentInteraction = state.interactions[state.interactions.length - 1]
       if (!currentInteraction) return state

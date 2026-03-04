@@ -24,6 +24,7 @@ import type {
 import { classifyIntent, shouldProposeSkill, generatePatternDescription } from './cognitive-router'
 import { getSimulatedResponse } from '../config/responses'
 import { TIER_CONFIG } from '../config/tiers'
+import { executeCognitiveRequest } from './CognitiveAdapter'
 
 // Stage timing for animations (ms)
 const STAGE_TIMING: Record<PipelineStage, number> = {
@@ -194,14 +195,59 @@ export async function completeExecution(
     return
   }
 
-  // Generate response
-  const response = state.mode === 'demo'
-    ? getSimulatedResponse(decision.intent, interaction.input)
-    : await generateLLMResponse(interaction, state) // Future: real LLM call
+  let response: string
+  let tokensIn: number | undefined
+  let tokensOut: number | undefined
+  let modelUsed: string | undefined
 
-  // Simulate execution latency
-  const executionLatency = TIER_CONFIG[decision.tier].latencyMs
-  await delay(executionLatency)
+  if (state.mode === 'demo') {
+    // Demo mode: simulated responses with artificial latency
+    response = getSimulatedResponse(decision.intent, interaction.input)
+    const executionLatency = TIER_CONFIG[decision.tier].latencyMs
+    await delay(executionLatency)
+  } else {
+    // Interactive mode: live API calls via CognitiveAdapter
+
+    // Tier 0 (cached skills) uses local execution, no API call needed
+    if (decision.tier === 0) {
+      response = `[Cached Skill]: ${decision.skillMatch?.pattern || 'Automated response'}`
+      modelUsed = 'local_memory'
+      tokensIn = 0
+      tokensOut = 0
+    } else {
+      // Tiers 1-3: live API calls
+      const tierKey = `tier${decision.tier}` as 'tier1' | 'tier2' | 'tier3'
+      const tierConfig = state.modelConfig[tierKey]
+      modelUsed = tierConfig.model
+
+      // Set executing status (shows "Awaiting Tier N Cognition..." in UI)
+      dispatch({
+        type: 'UPDATE_INTERACTION_STATUS',
+        id: interaction.id,
+        status: 'executing',
+      })
+
+      try {
+        const result = await executeCognitiveRequest(interaction.input, tierConfig)
+        response = result.text
+        tokensIn = result.tokensIn
+        tokensOut = result.tokensOut
+      } catch (error) {
+        // Jidoka: halt pipeline with provider error
+        const message = error instanceof Error ? error.message : String(error)
+        dispatch({
+          type: 'HALT_PIPELINE',
+          reason: {
+            stage: 'execution',
+            error: message,
+            expected: 'Valid API response from provider',
+            proposedFix: 'Check API key and network connection in models.config',
+          },
+        })
+        return
+      }
+    }
+  }
 
   // Complete the interaction
   const totalLatency = Date.now() - startTime
@@ -218,6 +264,10 @@ export async function completeExecution(
     latencyMs: totalLatency,
     humanFeedback: decision.zone === 'yellow' ? 'approved' : null,
     skillMatch: decision.skillMatch?.id || null,
+    // v0.5.0: Interactive mode additions
+    modelUsed,
+    tokensIn,
+    tokensOut,
   }
 
   dispatch({ type: 'COMPLETE_INTERACTION', response, telemetry: telemetryEntry })
@@ -321,13 +371,3 @@ function checkJidoka(failureType: FailureType, currentStage: PipelineStage): Hal
   return reasons[failureType]
 }
 
-/**
- * Placeholder for real LLM response generation
- */
-async function generateLLMResponse(
-  _interaction: Interaction,
-  _state: AppState
-): Promise<string> {
-  // Future: Implement actual LLM calls using state.modelConfig
-  return 'Interactive mode LLM calls not yet implemented.'
-}
