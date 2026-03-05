@@ -24,7 +24,7 @@ import { useApp, useTutorial, usePendingApproval, usePipeline, useSkillProposal 
 import { processInteraction, continueAfterApproval, rejectInteraction } from '../../services'
 import { DiagnosticCard } from '../Diagnostic/DiagnosticCard'
 import { SkillProposalCard } from '../Skills'
-import type { Interaction, FailureType, SkillProposal } from '../../state/types'
+import type { Interaction, FailureType } from '../../state/types'
 
 // Preset prompts for the tray
 const PRESETS = [
@@ -187,7 +187,7 @@ export function InteractionPane() {
           </div>
         ) : (
           <div className="space-y-4">
-            {state.interactions.map((interaction, index) => (
+            {state.interactions.map((interaction) => (
               <InteractionCard
                 key={interaction.id}
                 interaction={interaction}
@@ -197,10 +197,6 @@ export function InteractionPane() {
                 processing={processing}
                 haltReason={interaction.status === 'halted' ? pipeline.haltReason : null}
                 onReset={() => dispatch({ type: 'RESET_PIPELINE' })}
-                isLatestInteraction={index === state.interactions.length - 1}
-                skillProposal={skillProposal}
-                onApproveSkill={() => dispatch({ type: 'APPROVE_SKILL' })}
-                onRejectSkill={() => dispatch({ type: 'REJECT_SKILL' })}
               />
             ))}
             {/* Scroll anchor with breathing room */}
@@ -208,12 +204,11 @@ export function InteractionPane() {
           </div>
         )}
 
-        {/* Pending Approval Card */}
+        {/* Pending Approval Card — Immediate Constraint (v0.8.1: reordered) */}
         {pendingApproval && (
-          <div className="mt-4 bg-zone-yellow/10 border border-zone-yellow p-4">
-            <div className="flex items-center gap-2 text-zone-yellow font-medium mb-2">
-              <span>✋</span>
-              <span>Approval Required</span>
+          <div className="mt-4 bg-zone-yellow/10 border-l-4 border-grove-yellow p-3">
+            <div className="text-zone-yellow font-medium mb-2 uppercase tracking-wider text-sm">
+              Approval Required
             </div>
             <p className="text-sm text-grove-text-mid mb-2">
               This action is in the <strong>YELLOW ZONE</strong> — it requires your approval before proceeding.
@@ -240,6 +235,17 @@ export function InteractionPane() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Skill Flywheel Proposal — Meta-action closest to input (v0.8.1: moved here) */}
+        {skillProposal.active && skillProposal.intent && state.interactions.length > 0 && (
+          <SkillProposalCard
+            intent={skillProposal.intent}
+            pattern={skillProposal.pattern}
+            count={skillProposal.count}
+            onApprove={() => dispatch({ type: 'APPROVE_SKILL' })}
+            onReject={() => dispatch({ type: 'REJECT_SKILL' })}
+          />
         )}
       </div>
 
@@ -291,10 +297,6 @@ interface InteractionCardProps {
   processing: boolean
   haltReason: import('../../state/types').HaltReason | null
   onReset: () => void
-  isLatestInteraction: boolean
-  skillProposal: SkillProposal
-  onApproveSkill: () => void
-  onRejectSkill: () => void
 }
 
 function InteractionCard({
@@ -305,10 +307,6 @@ function InteractionCard({
   processing,
   haltReason,
   onReset,
-  isLatestInteraction,
-  skillProposal,
-  onApproveSkill,
-  onRejectSkill,
 }: InteractionCardProps) {
   return (
     <div
@@ -328,9 +326,9 @@ function InteractionCard({
           onClick={onRunAgain}
           disabled={processing}
           title="Run again"
-          className="absolute top-3 right-3 p-1.5 text-grove-text-dim hover:text-grove-text hover:bg-grove-border transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+          className="absolute top-3 right-3 px-2 py-1 text-grove-text-dim hover:text-grove-text hover:bg-grove-border transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50 font-mono text-xs"
         >
-          🔁
+          Run
         </button>
       )}
 
@@ -353,11 +351,11 @@ function InteractionCard({
         </span>
         {interaction.skillMatch && (
           <span className="text-tier-0 px-2 py-0.5 border border-tier-0">
-            ⚡ Skill
+            Skill
           </span>
         )}
         {interaction.sovereignty === 'local' && (
-          <span className="text-grove-green text-xs">🏠 Local</span>
+          <span className="text-grove-green text-xs px-2 py-0.5 border border-grove-green/30">Local</span>
         )}
 
         {/* Pattern Tracking Badge */}
@@ -401,20 +399,6 @@ function InteractionCard({
       {interaction.status === 'halted' && haltReason && (
         <DiagnosticCard reason={haltReason} onReset={onReset} />
       )}
-
-      {/* Inline Skill Flywheel Proposal (v0.6.0) */}
-      {/* Renders ONLY on the latest interaction that matches the proposal intent */}
-      {skillProposal.active &&
-       skillProposal.intent === interaction.intent &&
-       isLatestInteraction && (
-        <SkillProposalCard
-          intent={skillProposal.intent}
-          pattern={skillProposal.pattern}
-          count={skillProposal.count}
-          onApprove={onApproveSkill}
-          onReject={onRejectSkill}
-        />
-      )}
     </div>
   )
 }
@@ -435,7 +419,7 @@ function PatternBadge({ interaction, hasSkill }: PatternBadgeProps) {
   if (hasSkill && !interaction.skillMatch) {
     return (
       <span className="text-tier-0 px-2 py-0.5 border border-tier-0 animate-pulse">
-        ⚡ Cached Skill
+        Cached Skill
       </span>
     )
   }
@@ -447,14 +431,14 @@ function PatternBadge({ interaction, hasSkill }: PatternBadgeProps) {
   if (count >= 3) {
     return (
       <span className="text-grove-amber px-2 py-0.5 border border-grove-amber/50 animate-pulse">
-        ⚡ Skill Proposed!
+        Skill Proposed
       </span>
     )
   }
 
   return (
     <span className="text-grove-text-dim px-2 py-0.5 border border-grove-border">
-      👀 Observed ({count}/3)
+      Observed {count}/3
     </span>
   )
 }
@@ -489,7 +473,7 @@ function PromptTray({ presets, skills, onSelect, disabled, simulateFailure, onFa
                 onClick={() => onSelect(preset.input)}
                 disabled={disabled}
                 className={`
-                  flex items-center gap-2 px-3 py-1.5 text-xs font-mono whitespace-nowrap
+                  flex items-center gap-1.5 px-2 py-1 text-xs font-mono whitespace-nowrap
                   transition-all disabled:opacity-50
                   ${skilled
                     ? 'bg-tier-0/10 border border-tier-0/50 text-tier-0 hover:bg-tier-0/20'
@@ -498,13 +482,12 @@ function PromptTray({ presets, skills, onSelect, disabled, simulateFailure, onFa
                 `}
               >
                 <span
-                  className={`w-2 h-2 ${
+                  className={`w-1.5 h-1.5 ${
                     skilled
-                      ? 'bg-tier-0 shadow-[0_0_6px_var(--tier-0)]'
-                      : `bg-zone-${preset.zone} shadow-[0_0_4px_var(--zone-${preset.zone})]`
+                      ? 'bg-tier-0'
+                      : `bg-zone-${preset.zone}`
                   }`}
                 />
-                {skilled && <span>⚡</span>}
                 {preset.label}
                 <span className="text-grove-text-dim">
                   {skilled ? 'T0' : `T${preset.tier}`}

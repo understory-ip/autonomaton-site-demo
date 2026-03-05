@@ -64,8 +64,8 @@ export function calculateSavings(originalTier: Tier): number {
 }
 
 /**
- * Get sovereignty icon/label
+ * Get sovereignty label
  */
 export function getSovereigntyLabel(sovereignty: 'local' | 'cloud'): string {
-  return sovereignty === 'local' ? '🏠 Local' : '☁️ Cloud'
+  return sovereignty === 'local' ? 'Local' : 'Cloud'
 }

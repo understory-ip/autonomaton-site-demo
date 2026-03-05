@@ -91,7 +91,7 @@ export function TelemetryStream() {
                 {entry.skillMatch && (
                   <>
                     <span className="text-grove-text-dim"> │ </span>
-                    <span className="text-tier-0">⚡cached</span>
+                    <span className="text-tier-0">cached</span>
                   </>
                 )}
               </div>

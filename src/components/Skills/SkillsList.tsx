@@ -14,9 +14,8 @@ export function SkillsList() {
 
   return (
     <div className="p-4 border-t border-slate-700">
-      <div className="text-xs text-slate-500 mb-2 flex items-center gap-2">
-        <span>⚡</span>
-        <span>Active Skills ({skills.length})</span>
+      <div className="text-xs text-slate-500 mb-2">
+        Active Skills ({skills.length})
       </div>
 
       <div className="space-y-2">

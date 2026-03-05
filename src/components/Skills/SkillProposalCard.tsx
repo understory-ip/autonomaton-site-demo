@@ -36,9 +36,8 @@ export function SkillProposalCard({
   return (
     <div className="border-t-2 border-x border-b border-grove-amber bg-grove-bg2 p-5 mt-4">
       {/* Header */}
-      <div className="font-mono text-grove-amber text-sm uppercase tracking-widest mb-3 flex items-center gap-2">
-        <span>⚡</span>
-        <span>Pattern Detected</span>
+      <div className="font-mono text-grove-amber text-sm uppercase tracking-widest mb-3">
+        Pattern Detected
       </div>
 
       {/* Message */}
@@ -66,9 +65,9 @@ export function SkillProposalCard({
           <span className="text-grove-green">$0.00</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-grove-text-dim">☁️</span>
+          <span className="text-grove-text-dim">Cloud</span>
           <span className="text-grove-amber">→</span>
-          <span className="text-grove-green">🏠</span>
+          <span className="text-grove-green">Local</span>
         </div>
       </div>
 

@@ -19,14 +19,14 @@ export function Header() {
   }
 
   return (
-    <header className="border-b border-grove-border px-6 py-4 bg-grove-bg2">
+    <header className="border-b border-grove-border px-4 py-2 bg-grove-bg2">
       <div className="flex items-center justify-between">
         {/* LEFT: Logo — Instrument Serif */}
         <div className="flex-1">
-          <h1 className="text-xl font-serif text-grove-text">
+          <h1 className="text-lg font-serif text-grove-text leading-tight">
             Grove Autonomaton
           </h1>
-          <p className="text-sm text-grove-text-dim">Pattern Playground</p>
+          <p className="text-xs text-grove-text-dim">Pattern Playground</p>
         </div>
 
         {/* CENTER: View Toggle (v0.8.0) */}
@@ -54,7 +54,7 @@ export function Header() {
         </div>
 
         {/* RIGHT: Controls */}
-        <div className="flex-1 flex items-center justify-end gap-6">
+        <div className="flex-1 flex items-center justify-end gap-4">
           {/* Architecture Deck Button (v0.7.1) */}
           <button
             onClick={() => dispatch({ type: 'OPEN_DECK' })}

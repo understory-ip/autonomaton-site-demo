@@ -29,7 +29,7 @@ export function PipelineVisualization() {
   const pipeline = usePipeline()
 
   return (
-    <section className="border-b border-grove-border bg-grove-bg2 py-6">
+    <section className="border-b border-grove-border bg-grove-bg2 py-2">
       <div className="flex items-center justify-center">
         {STAGES.map((stage, idx) => (
           <div key={stage} className="flex items-center">

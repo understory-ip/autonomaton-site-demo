@@ -397,12 +397,12 @@ function SlideRatchet({ active }: { active: boolean }) {
           <div className="text-[12px] text-grove-text-dim">Cost curve bends down automatically</div>
         </DeckCard>
         <DeckCard className="p-4">
-          <div className="font-mono text-[18px] text-grove-amber mb-1.5">🔒</div>
+          <div className="font-mono text-[18px] text-grove-amber mb-1.5">P</div>
           <div className="text-[13px] text-grove-text mb-1">More Private</div>
           <div className="text-[12px] text-grove-text-dim">Local execution, no external call</div>
         </DeckCard>
         <DeckCard className="p-4">
-          <div className="font-mono text-[18px] text-grove-amber mb-1.5">⚡</div>
+          <div className="font-mono text-[18px] text-grove-amber mb-1.5">S</div>
           <div className="text-[13px] text-grove-text mb-1">More Sovereign</div>
           <div className="text-[12px] text-grove-text-dim">Less dependent on rented compute</div>
         </DeckCard>

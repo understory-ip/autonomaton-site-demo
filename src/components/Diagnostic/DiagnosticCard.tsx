@@ -24,7 +24,7 @@ export function DiagnosticCard({ reason, onReset }: DiagnosticCardProps) {
     <div className="border-t-2 border-x border-b border-grove-red bg-[#1a0a0a] p-5 mt-4">
       {/* Header */}
       <div className="font-mono text-grove-red text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-        <span>🛑</span>
+        <span className="font-bold">HALT</span>
         <span>Pipeline Halted</span>
       </div>
 

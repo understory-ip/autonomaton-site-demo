@@ -124,7 +124,7 @@ Shall I create this skill?`
 
   deploy_change: (input: string) => {
     const topic = extractTopic(input)
-    return `⚠️ **Deployment Request: ${topic}**
+    return `[DEPLOY] **Deployment Request: ${topic}**
 
 This action is in the **RED ZONE** — human-only.
 

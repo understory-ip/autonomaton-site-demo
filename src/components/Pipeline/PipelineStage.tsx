@@ -36,26 +36,24 @@ export function PipelineStage({ name, state, icon }: PipelineStageProps) {
   return (
     <div
       className={`
-        flex flex-col items-center justify-center
-        w-28 h-20 border-2
+        flex items-center gap-2 px-3 py-1.5 border
+        font-mono text-xs tracking-widest uppercase
         transition-all duration-300 ease-out
         ${STATE_STYLES[state]}
         ${STATE_ANIMATIONS[state]}
       `}
     >
-      <span className="text-2xl mb-1">{icon}</span>
-      <span className="text-xs font-mono font-medium tracking-wide uppercase">
-        {name}
-      </span>
+      <span className="text-grove-text-dim">{icon}</span>
+      <span className="font-medium">{name}</span>
     </div>
   )
 }
 
-// Stage metadata — icons and labels for each stage
+// Stage metadata — numbers and labels for each stage
 export const STAGE_META: Record<string, { icon: string; label: string }> = {
-  telemetry: { icon: '📡', label: 'Telemetry' },
-  recognition: { icon: '🔍', label: 'Recognition' },
-  compilation: { icon: '⚙️', label: 'Compilation' },
-  approval: { icon: '✋', label: 'Approval' },
-  execution: { icon: '⚡', label: 'Execution' },
+  telemetry: { icon: '01', label: 'Telemetry' },
+  recognition: { icon: '02', label: 'Recognition' },
+  compilation: { icon: '03', label: 'Compilation' },
+  approval: { icon: '04', label: 'Approval' },
+  execution: { icon: '05', label: 'Execution' },
 }

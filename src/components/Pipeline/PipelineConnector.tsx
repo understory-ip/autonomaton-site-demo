@@ -18,10 +18,10 @@ export function PipelineConnector({ fromState, toState }: PipelineConnectorProps
   const isComplete = fromState === 'complete' && toState === 'complete'
 
   return (
-    <div className="flex items-center mx-2">
+    <div className="flex items-center mx-1">
       <div
         className={`
-          w-8 h-0.5 rounded-full transition-all duration-300
+          w-4 h-0.5 transition-all duration-300
           ${isComplete ? 'bg-green-500' : ''}
           ${isActive && !isComplete ? 'bg-blue-500' : ''}
           ${!isActive && !isComplete ? 'bg-slate-600' : ''}
