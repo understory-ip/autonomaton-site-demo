@@ -250,6 +250,10 @@ export interface AppState {
 
   // UI state
   configRipple: boolean  // Triggers the "no deploy" animation
+
+  // Deck overlay (v0.7.1)
+  isDeckOpen: boolean
+  activeSlideIndex: number
 }
 
 // =============================================================================
@@ -306,3 +310,8 @@ export type AppAction =
 
   // Metrics
   | { type: 'UPDATE_METRICS'; delta: Partial<Metrics> }
+
+  // Deck overlay (v0.7.1)
+  | { type: 'OPEN_DECK' }
+  | { type: 'CLOSE_DECK' }
+  | { type: 'SET_ACTIVE_SLIDE'; index: number }

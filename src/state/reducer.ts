@@ -67,6 +67,11 @@ export const initialState: AppState = {
 
   simulateFailure: 'none',
   configRipple: false,
+
+  // Deck overlay (v0.7.1)
+  // Synchronous localStorage check prevents UI flash on first visit
+  isDeckOpen: typeof window !== 'undefined' && !localStorage.getItem('grove_hasSeenDeck'),
+  activeSlideIndex: 0,
 }
 
 // =============================================================================
@@ -439,6 +444,18 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ],
         },
       }
+
+    // =========================================================================
+    // DECK OVERLAY (v0.7.1)
+    // =========================================================================
+    case 'OPEN_DECK':
+      return { ...state, isDeckOpen: true }
+
+    case 'CLOSE_DECK':
+      return { ...state, isDeckOpen: false }
+
+    case 'SET_ACTIVE_SLIDE':
+      return { ...state, activeSlideIndex: action.index }
 
     default:
       return state

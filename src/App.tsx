@@ -27,6 +27,7 @@ import { InteractionPane } from './components/Interaction'
 import { ConfigEditor } from './components/Config'
 import { TelemetryStream } from './components/Telemetry'
 import { Header } from './components/Header'
+import { DeckOverlay } from './components/Deck'
 
 export default function App() {
   const { tutorial } = useAppState()
@@ -83,6 +84,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Deck overlay (v0.7.1) */}
+      <DeckOverlay />
     </div>
   )
 }

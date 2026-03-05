@@ -29,15 +29,13 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-6">
-          {/* Manifesto Link */}
-          <a
-            href="grove-autonomaton-deck.html"
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* Architecture Deck Button (v0.7.1) */}
+          <button
+            onClick={() => dispatch({ type: 'OPEN_DECK' })}
             className="font-serif text-grove-amber hover:text-grove-amber-bright transition-colors text-sm"
           >
-            [ Read the Pattern Deck ]
-          </a>
+            [ Architecture Deck ]
+          </button>
 
           {/* Mode Toggle */}
           <div className="flex items-center gap-2">
