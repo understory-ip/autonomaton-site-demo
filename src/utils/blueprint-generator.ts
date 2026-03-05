@@ -10,7 +10,7 @@
  */
 
 // =============================================================================
-// HTML BLUEPRINT GENERATOR — THE TROJAN HORSE
+// HTML MANIFESTO GENERATOR
 // =============================================================================
 
 export function generateBlueprintHTML(appName: string, generatedPRD: string): string {
@@ -251,7 +251,7 @@ export function downloadBlueprint(appName: string, html: string): void {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `sovereign-blueprint-${slugify(appName)}.html`
+  a.download = `sovereign-manifesto-${slugify(appName)}.html`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -266,6 +266,7 @@ function escapeHtml(str: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 function slugify(str: string): string {

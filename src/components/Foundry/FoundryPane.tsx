@@ -1,13 +1,13 @@
 /**
- * FoundryPane — The Sovereign Blueprint Engine (v0.9.0)
+ * FoundryPane — The Sovereign Manifesto Engine (v0.9.2)
  *
- * Live-streaming Tier 3 PRD compiler with exportable HTML blueprint.
+ * Live-streaming Tier 3 PRD compiler with exportable HTML manifesto.
  *
  * Features:
- * - UI Teaser: Mode selector (Scaffold active, Refactor v2.0 teaser)
- * - Auto-scroll: Follows streaming output
- * - Streaming display with terminal aesthetic
- * - Sovereign Blueprint HTML export
+ * - Mode selector (Scaffold active, Refactor v2.0 teaser)
+ * - Auto-scroll follows streaming output
+ * - Terminal aesthetic for PRD display
+ * - Sovereign Manifesto HTML export (business case + regulatory + PRD)
  */
 
 import { useState, useRef, useEffect } from 'react'

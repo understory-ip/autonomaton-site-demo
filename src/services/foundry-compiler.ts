@@ -1,10 +1,10 @@
 /**
- * Foundry Compiler — The Sovereign Blueprint Engine (v0.9.2)
+ * Foundry Compiler — Tier 3 Streaming PRD Generator (v0.9.2)
  *
- * Uses Tier 3 streaming to compile app descriptions into strict
- * Grove Autonomaton PRDs in real-time.
+ * Compiles app descriptions into strict Grove Autonomaton PRDs in real-time.
+ * Output is wrapped by blueprint-generator.ts into the Sovereign Manifesto HTML.
  *
- * v0.9.2: Now uses declarative prompt pipeline from prompts.schema.ts
+ * v0.9.2: Prompt logic moved to declarative pipeline (prompts.schema.ts)
  */
 
 import type { ModelConfig, AppAction } from '../state/types'
