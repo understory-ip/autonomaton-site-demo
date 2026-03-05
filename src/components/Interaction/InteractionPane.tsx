@@ -171,6 +171,19 @@ export function InteractionPane() {
                 <span className="text-grove-text-dim text-xs font-mono">T3</span>
               </button>
             </div>
+
+            {/* Foundry Cross-Link (v0.8.0) */}
+            <div className="mt-8 pt-6 border-t border-grove-border w-full max-w-md text-center">
+              <p className="font-mono text-xs text-grove-text-dim mb-3">
+                Already understand the pattern?
+              </p>
+              <button
+                onClick={() => dispatch({ type: 'SET_VIEW', view: 'foundry' })}
+                className="text-grove-amber hover:text-grove-amber-bright font-mono text-xs uppercase tracking-widest transition-colors"
+              >
+                Enter The Foundry →
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">

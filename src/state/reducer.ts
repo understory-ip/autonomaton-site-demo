@@ -67,6 +67,7 @@ export const initialState: AppState = {
 
   simulateFailure: 'none',
   configRipple: false,
+  currentView: 'sandbox',
 
   // Deck overlay (v0.7.1)
   // Synchronous localStorage check prevents UI flash on first visit
@@ -459,6 +460,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'SET_ACTIVE_SLIDE':
       return { ...state, activeSlideIndex: action.index }
+
+    // =========================================================================
+    // VIEW ROUTING (v0.8.0)
+    // =========================================================================
+    case 'SET_VIEW':
+      return { ...state, currentView: action.view }
 
     default:
       return state

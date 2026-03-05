@@ -160,6 +160,8 @@ export interface TelemetryEntry {
 
 export type Mode = 'demo' | 'interactive'
 
+export type CurrentView = 'sandbox' | 'foundry'
+
 export interface ModelConfig {
   provider: string
   apiKey: string | null
@@ -250,6 +252,7 @@ export interface AppState {
 
   // UI state
   configRipple: boolean  // Triggers the "no deploy" animation
+  currentView: CurrentView  // Active view (v0.8.0)
 
   // Deck overlay (v0.7.1)
   isDeckOpen: boolean
@@ -315,3 +318,6 @@ export type AppAction =
   | { type: 'OPEN_DECK' }
   | { type: 'CLOSE_DECK' }
   | { type: 'SET_ACTIVE_SLIDE'; index: number }
+
+  // View routing (v0.8.0)
+  | { type: 'SET_VIEW'; view: CurrentView }
