@@ -30,6 +30,9 @@ import { TelemetryStream } from './components/Telemetry'
 import { Header } from './components/Header'
 import { DeckOverlay } from './components/Deck'
 
+// App version — update on each release
+const APP_VERSION = '0.9.8'
+
 export default function App() {
   const { currentView } = useAppState()
 
@@ -50,8 +53,11 @@ export default function App() {
       <TelemetryStream />
 
       {/* Footer */}
-      <footer className="border-t border-grove-border px-6 py-3 text-center text-xs text-grove-text-dim">
-        The Grove Autonomaton Pattern • CC BY 4.0 • thegrovefoundation.org
+      <footer className="border-t border-grove-border px-6 py-3 text-center text-xs text-grove-text-dim font-mono">
+        <a href="https://the-grove.ai" target="_blank" rel="noopener noreferrer" className="hover:text-grove-text transition-colors">
+          The Grove Autonomaton Pattern
+        </a>
+        {' '}• CC BY 4.0 • the-grove.ai | <span className="text-grove-green font-semibold">v{APP_VERSION}</span>
       </footer>
 
       {/* Deck overlay (v0.7.1) */}
