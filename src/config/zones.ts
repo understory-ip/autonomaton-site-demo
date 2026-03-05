@@ -16,6 +16,7 @@ export const defaultZonesSchema: ZonesSchema = {
   zones: {
     green: {
       meaning: 'Autonomous Routine',
+      flywheel_eligible: true,
       allows: [
         'execute_confirmed_skills',
         'write_telemetry',
@@ -26,6 +27,7 @@ export const defaultZonesSchema: ZonesSchema = {
 
     yellow: {
       meaning: 'Supervised Proposals',
+      flywheel_eligible: true,
       allows: [
         'propose_new_skill',
         'propose_rule_change',
@@ -37,6 +39,7 @@ export const defaultZonesSchema: ZonesSchema = {
 
     red: {
       meaning: 'Human-Only',
+      flywheel_eligible: false,  // Governance lock: destructive ops cannot become skills
       allows: [
         'surface_information_only',
       ],
@@ -69,6 +72,7 @@ zones:
   for (const [name, zone] of Object.entries(schema.zones)) {
     yaml += `  ${name}:\n`
     yaml += `    meaning: "${zone.meaning}"\n`
+    yaml += `    flywheel_eligible: ${zone.flywheel_eligible}\n`
     yaml += `    description: "${zone.description}"\n`
     yaml += `    allows:\n`
     for (const action of zone.allows) {

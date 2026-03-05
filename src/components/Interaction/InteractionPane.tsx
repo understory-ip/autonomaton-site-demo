@@ -183,7 +183,7 @@ export function InteractionPane() {
                 onClick={() => dispatch({ type: 'SET_VIEW', view: 'foundry' })}
                 className="text-grove-amber hover:text-grove-amber-bright font-mono text-xs uppercase tracking-widest transition-colors"
               >
-                Enter The Foundry →
+                Build a Sovereign AI App →
               </button>
             </div>
           </div>
@@ -483,6 +483,9 @@ function PatternBadge({ interaction, hasSkill }: PatternBadgeProps) {
 
   // If there's no pattern count, or it's a skill match, don't show anything
   if (!count || interaction.skillMatch) return null
+
+  // Zone governance: only show flywheel progress if eligible (computed at creation)
+  if (!interaction.flywheelEligible) return null
 
   // Show the observation count
   if (count >= 3) {

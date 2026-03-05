@@ -44,9 +44,10 @@ export interface HaltReason {
 export type Zone = 'green' | 'yellow' | 'red'
 
 export interface ZoneDefinition {
-  meaning: string      // e.g., "Autonomous Routine"
-  allows: string[]     // What actions this zone permits
-  description: string  // Human-readable explanation
+  meaning: string           // e.g., "Autonomous Routine"
+  flywheel_eligible: boolean // Can intents in this zone become skills?
+  allows: string[]          // What actions this zone permits
+  description: string       // Human-readable explanation
 }
 
 export interface ZonesSchema {
@@ -109,6 +110,7 @@ export interface Interaction {
   skillMatch: string | null  // ID of matched skill, if any
   mode: Mode
   patternCountAtCreation?: number  // Pattern count when this interaction was created (for "👀 Observed N/3" badge)
+  flywheelEligible: boolean  // Zone governance: can this intent become a skill?
 }
 
 // =============================================================================

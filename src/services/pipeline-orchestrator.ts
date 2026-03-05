@@ -122,6 +122,11 @@ export async function processInteraction(
     ? (state.patternCounts[decision.intent] || 0) + 1
     : undefined
 
+  // Compute flywheel eligibility from zone schema (single source of truth)
+  // Defensive: strict boolean check handles legacy localStorage without property
+  const zoneConfig = state.zonesSchema.zones[decision.zone]
+  const flywheelEligible = zoneConfig?.flywheel_eligible === true
+
   // Create the interaction record
   const interaction: Interaction = {
     id: interactionId,
@@ -138,6 +143,7 @@ export async function processInteraction(
     skillMatch: decision.skillMatch?.id || null,
     mode: state.mode,
     patternCountAtCreation,
+    flywheelEligible,
   }
 
   dispatch({ type: 'ADD_INTERACTION', interaction })
@@ -146,15 +152,17 @@ export async function processInteraction(
   if (willIncrementPattern) {
     dispatch({ type: 'INCREMENT_PATTERN', intent: decision.intent })
 
-    // Check if we should propose a skill
-    const newCount = patternCountAtCreation!
-    if (shouldProposeSkill(decision.intent, { ...state.patternCounts, [decision.intent]: newCount }, state.skills)) {
-      dispatch({
-        type: 'PROPOSE_SKILL',
-        intent: decision.intent,
-        pattern: generatePatternDescription(decision.intent),
-        count: newCount,
-      })
+    // Check if we should propose a skill (only if zone permits via flywheelEligible)
+    if (flywheelEligible) {
+      const newCount = patternCountAtCreation!
+      if (shouldProposeSkill(decision.intent, { ...state.patternCounts, [decision.intent]: newCount }, state.skills)) {
+        dispatch({
+          type: 'PROPOSE_SKILL',
+          intent: decision.intent,
+          pattern: generatePatternDescription(decision.intent),
+          count: newCount,
+        })
+      }
     }
   }
 
