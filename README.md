@@ -84,7 +84,7 @@ The pattern doesn't care what's behind each tier. It validates outputs against s
 
 ## The pattern document
 
-This repository proves the pattern works. The [Grove Autonomaton Pattern Brief](https://the-grove.ai) explains why it matters — the CS lineage, the governance architecture, the distributed vision, and the civilizational stakes of getting this right.
+This repository proves the pattern works. The [Grove Autonomaton Pattern Brief](https://the-grove.ai/autonomaton) explains why it matters — the CS lineage, the governance architecture, the distributed vision, and the civilizational stakes of getting this right.
 
 Read the brief. Then come back and edit `routing.config`.
 
