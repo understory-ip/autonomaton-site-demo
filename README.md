@@ -82,11 +82,71 @@ The pattern doesn't care what's behind each tier. It validates outputs against s
 
 ---
 
+## Engineering toolkit
+
+This repository is a demo and an engineering system. Three tools work together:
+
+**The Foundry** generates the architectural contract. Describe your application in the Foundry tab. It streams a complete Sovereign Manifesto — routing config, zones schema, audit ledger structure, anti-patterns, and agentic coding directives — as a single HTML document. That document is simultaneously a human-readable architecture spec, a machine-readable governance contract, and the source of truth for how the application gets built.
+
+**The Foundation Loop** provides the engineering discipline. It's a sprint methodology purpose-built for Autonomaton-patterned systems. Six gate phases (Contract Detection → Pattern Check → Canonical Source Audit → Pipeline Mapping → Zone Classification → Provenance Planning) run before any code gets written. Eight build phases produce the sprint artifacts. The Evolution Harvest runs continuously throughout, scanning for self-healing, self-fixing, and self-authoring opportunities.
+
+The Foundation Loop detects its own context. When it finds a `CLAUDE.md` in the project root, it reads the canonical component registry as its contract. When it finds a Sovereign Manifesto, it reads the Manifesto as the binding architectural contract. The Foundry generates the spec. The Foundation Loop knows how to build from it. Engineers can extend both in any direction for their own domains and use cases.
+
+**The Evolution Harvest** ensures the software you build is the software that improves itself. During every coding session, the Foundation Loop watches for three categories of opportunity: Jidoka (the system could detect this failure automatically), Kaizen (this manual fix could be automated), and Flywheel (this repeated pattern could become a cached skill). Evolution candidates get logged to the DEVLOG and triaged at session boundaries. The engineering methodology embodies the pattern it governs — if the process doesn't surface self-improvement opportunities during development, the resulting software won't surface them during operation.
+
+### Toolkit source files
+
+| Tool | Location | Purpose |
+|------|----------|---------|
+| Foundry compiler | [`services/foundry-compiler.ts`](src/services/foundry-compiler.ts) | Tier 3 streaming PRD generator |
+| Prompt pipeline | [`config/prompts.schema.ts`](src/config/prompts.schema.ts) | Declarative prompt engineering |
+| Blueprint generator | [`utils/blueprint-generator.ts`](src/utils/blueprint-generator.ts) | Sovereign Manifesto HTML export |
+| Pipeline orchestrator | [`services/pipeline-orchestrator.ts`](src/services/pipeline-orchestrator.ts) | The five-stage invariant in code |
+| Cognitive router | [`services/cognitive-router.ts`](src/services/cognitive-router.ts) | Intent classification + skill cache |
+| Cognitive adapter | [`services/CognitiveAdapter.ts`](src/services/CognitiveAdapter.ts) | Provider-agnostic LLM factory |
+| Routing config | [`config/routing.ts`](src/config/routing.ts) | Intent → Tier → Zone mapping |
+| Zone schema | [`config/zones.ts`](src/config/zones.ts) | Green/Yellow/Red governance |
+| Provenance hashing | [`utils/provenance.ts`](src/utils/provenance.ts) | Deterministic audit trail |
+
+### Sprint documentation
+
+Implementation planning for this repository lives in `docs/sprints/autonomaton-demo-v1/`:
+
+- [SPEC.md](docs/sprints/autonomaton-demo-v1/SPEC.md) — Goals and acceptance criteria
+- [ARCHITECTURE.md](docs/sprints/autonomaton-demo-v1/ARCHITECTURE.md) — Component structure and data flows
+- [DECISIONS.md](docs/sprints/autonomaton-demo-v1/DECISIONS.md) — Architectural decisions
+- [SPRINTS.md](docs/sprints/autonomaton-demo-v1/SPRINTS.md) — Implementation breakdown
+
+These artifacts were produced using the Foundation Loop methodology. They serve as both project documentation and a reference example of the methodology in practice.
+
+---
+
 ## The pattern document
 
-This repository proves the pattern works. The [Grove Autonomaton Pattern Brief](https://the-grove.ai/autonomaton) explains why it matters — the CS lineage, the governance architecture, the distributed vision, and the civilizational stakes of getting this right.
+This repository proves the pattern works. The [Grove Autonomaton Pattern Brief](https://the-grove.ai) explains why it matters — the CS lineage, the governance architecture, the distributed vision, and the civilizational stakes of getting this right.
 
 Read the brief. Then come back and edit `routing.config`.
+
+The pattern is part of a larger initiative: [The Grove Foundation](https://the-grove.ai) — cognitive sovereignty for the AI era. The same architectural play the PC revolution made against mainframes, now applied to the $650B centralized AI infrastructure buildout.
+
+---
+
+## Discovery
+
+The Autonomaton Pattern is one component of a larger architectural thesis. These resources trace the lineage.
+
+| Resource | What it covers |
+|----------|---------------|
+| [the-grove.ai/autonomaton](https://the-grove.ai/autonomaton) | Live interactive demo — all 9 claims provable in 3 minutes |
+| [The Grove Autonomaton Pattern Brief](https://the-grove.ai) | Full architectural specification: CS lineage, governance model, distributed vision |
+| [The Grove Foundation](https://the-grove.ai) | Cognitive sovereignty initiative — the "why" behind the pattern |
+| [Sovereign Manifesto sample](src/components/Foundry/FoundryPane.tsx) | The Foundry's output format — architecture spec + governance contract + coding directives |
+| [Foundation Loop methodology](docs/sprints/) | Engineering discipline layer — sprint artifacts from this repository |
+| CC BY 4.0 | The pattern is open because the thesis requires it |
+
+**CS lineage:** Clark & Chalmers' Extended Mind thesis (1998), Toyota's Jidoka-Kaizen discipline, IBM's Autonomic Computing (2001), and Computational Reflection. The Autonomaton Pattern synthesizes these into a single architectural commitment: software that identifies its own issues, proposes its own fixes, and authors its own evolution — inside zones you control.
+
+**Where this is going:** The Autonomaton is the individual-scale expression. DEX (declarative governance) and Trellis (distributed knowledge networks) are the larger follow-on architectures. Same pattern, different scale.
 
 ---
 
@@ -97,17 +157,6 @@ CC BY 4.0 — The Grove Foundation.
 The pattern is open because the thesis requires it. Distributed cognition that depends on a single vendor's implementation isn't distributed. This architecture must be replicable, inspectable, and independently operable for the network thesis to hold.
 
 Build your own. Change it. Improve it. That's the point.
-
----
-
-## Sprint documentation
-
-Full implementation planning lives in `docs/sprints/autonomaton-demo-v1/`:
-
-- [SPEC.md](docs/sprints/autonomaton-demo-v1/SPEC.md) — Goals and acceptance criteria
-- [ARCHITECTURE.md](docs/sprints/autonomaton-demo-v1/ARCHITECTURE.md) — Component structure and data flows
-- [DECISIONS.md](docs/sprints/autonomaton-demo-v1/DECISIONS.md) — Architectural decisions
-- [SPRINTS.md](docs/sprints/autonomaton-demo-v1/SPRINTS.md) — Implementation breakdown
 
 ---
 
