@@ -2,7 +2,7 @@
 
 ## Instant Orientation
 
-**Project:** `C:\github\grove-autonomaton-example`
+**Project:** `C:\github\grove-autonomaton-pattern`
 **Sprint:** `autonomaton-demo-v1`
 **Goal:** Build a browser-based demo proving 9 Autonomaton Pattern claims through user interaction
 
@@ -55,7 +55,7 @@ React 18 + TypeScript + Vite + Tailwind CSS
 ## Pre-Execution Verification
 
 ```bash
-cd /c/github/grove-autonomaton-example
+cd /c/github/grove-autonomaton-pattern
 
 # Verify Node.js available
 node --version  # Should be 18+

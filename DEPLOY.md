@@ -45,7 +45,7 @@ git push origin main
 ## Architecture
 
 ```
-grove-autonomaton-example/     ← This repo (source)
+grove-autonomaton-pattern/     ← This repo (source)
 ├── src/
 ├── dist/                      ← Built files
 ├── deploy.sh                  ← Deploy script (Mac/Linux)

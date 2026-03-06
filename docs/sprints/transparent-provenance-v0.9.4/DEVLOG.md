@@ -87,4 +87,4 @@ vite v6.4.1 building for production...
 - `6e30f24` fix: v0.9.4 bug fixes — tooltips, demo mode, auto-scroll
 
 **Open Issues:**
-- [#1](https://github.com/twocash/grove-autonomaton-example/issues/1) — Add self-healing/self-evolving architecture section to manifesto
+- [#1](https://github.com/twocash/grove-autonomaton-pattern/issues/1) — Add self-healing/self-evolving architecture section to manifesto

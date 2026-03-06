@@ -11,7 +11,7 @@
 
 ### Attention Checkpoint
 Before starting this epic, verify:
-- [ ] Working directory is `/c/github/grove-autonomaton-example`
+- [ ] Working directory is `/c/github/grove-autonomaton-pattern`
 - [ ] Node.js and npm available
 - [ ] SPEC.md read and understood
 
