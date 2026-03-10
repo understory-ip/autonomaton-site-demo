@@ -50,12 +50,17 @@ export function CoreProvider({ children }: CoreProviderProps) {
 /**
  * Factory to create recipe-specific providers.
  * Recipes call this with their extended reducer and initial state.
+ *
+ * Returns an object with:
+ * - Provider: The context provider component
+ * - useAppState: Hook to access state
+ * - useAppDispatch: Hook to access dispatch
  */
 export function createRecipeProvider<S extends BaseAppState, A extends BaseAppAction>(
   reducer: (state: S, action: A) => S,
   initialState: S
 ) {
-  return function RecipeProvider({ children }: { children: ReactNode }) {
+  function Provider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(reducer, initialState)
 
     return (
@@ -64,6 +69,24 @@ export function createRecipeProvider<S extends BaseAppState, A extends BaseAppAc
       </CoreContext.Provider>
     )
   }
+
+  function useAppState(): S {
+    const context = useContext(CoreContext)
+    if (!context) {
+      throw new Error('useAppState must be used within Provider')
+    }
+    return context.state as S
+  }
+
+  function useAppDispatch(): Dispatch<A> {
+    const context = useContext(CoreContext)
+    if (!context) {
+      throw new Error('useAppDispatch must be used within Provider')
+    }
+    return context.dispatch as Dispatch<A>
+  }
+
+  return { Provider, useAppState, useAppDispatch }
 }
 
 // =============================================================================

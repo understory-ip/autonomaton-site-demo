@@ -234,7 +234,8 @@ export interface Metrics {
 // UI STATE
 // =============================================================================
 
-export type CurrentView = 'dashboard' | 'inbox' | 'config' | 'flywheel'
+// Base views that core supports - recipes can use string type for custom views
+export type CurrentView = string
 
 export type TutorialStep = 0 | 1 | 2 | 3
 
