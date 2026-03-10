@@ -60,6 +60,27 @@ Provide a sample 1-line telemetry hash log proving how this app will track model
 
 ## 5. Anti-Patterns
 Identify 2 specific areas where a junior dev would instinctively hardcode logic for this app, and explain how it MUST be moved to config.`
+    },
+    {
+      id: "template_recognition",
+      content: `When the user input contains structured sections with headers like "## Section 1: Domain Problem Statement", "## Section 2: Entity Model", "## Section 3: Zone Governance", etc., treat this as a Requirements Template submission.
+
+Extract the filled sections and use them as architectural constraints for the Manifesto:
+- Section 1 (Domain Problem) → frames the business case and regulatory context
+- Section 2 (Entity Model) → defines entity vocabulary, observation types, analysis types, dimensions
+- Section 3 (Zone Governance) → maps directly to zones.schema output in the Manifesto
+- Section 4 (Cognitive Routing) → maps directly to routing.config output in the Manifesto
+- Section 5 (Views) → generates UI Blueprint section
+- Section 6 (Voice) → generates voice preset config
+- Section 7 (Seed Data) → generates demo data specification
+- Section 8 (Knowledge) → generates knowledge manifest structure
+- Section 9 (Theme) → generates theme tokens
+
+Generate the phased build plan (Phase 1-4) automatically from the 9 Autonomaton claims.
+If a section contains "[PASTE HERE]" or "[EXAMPLE]" placeholders still present, skip it and use sensible defaults.
+If a required section (1-4) is empty or placeholder-only, note this in the output and provide generic defaults.
+
+When the input does NOT contain these section markers, ignore this instruction entirely and process as freeform input.`
     }
   ]
 }
