@@ -16,6 +16,7 @@ import { compileArchitecture } from '../../services/foundry-compiler'
 import { generateBlueprintHTML, downloadBlueprint } from '../../utils/blueprint-generator'
 import { getPipelineSignature } from '../../config/prompts.schema'
 import { getRandomHeroPrompt } from '../../config/hero-prompts'
+import { getSignalWatchTemplate, getBlankTemplate } from '../../config/foundry-template'
 
 export function FoundryPane() {
   const [appName, setAppName] = useState('')
@@ -37,6 +38,20 @@ export function FoundryPane() {
     const hero = getRandomHeroPrompt()
     dispatch({ type: 'SET_FOUNDRY_INPUT', input: hero.prompt })
     // Focus textarea after state update
+    setTimeout(() => textareaRef.current?.focus(), 0)
+  }
+
+  // Load Signal Watch example template
+  const loadSignalWatchTemplate = () => {
+    const template = getSignalWatchTemplate()
+    dispatch({ type: 'SET_FOUNDRY_INPUT', input: template.templateText })
+    setTimeout(() => textareaRef.current?.focus(), 0)
+  }
+
+  // Load blank template skeleton
+  const loadBlankTemplate = () => {
+    const template = getBlankTemplate()
+    dispatch({ type: 'SET_FOUNDRY_INPUT', input: template.templateText })
     setTimeout(() => textareaRef.current?.focus(), 0)
   }
 
@@ -103,13 +118,29 @@ export function FoundryPane() {
                   </span>
                 </span>
               </div>
-              <button
-                onClick={injectRandomHeroPrompt}
-                disabled={foundry.isCompiling}
-                className="text-[10px] text-grove-amber border border-grove-amber/30 px-2 py-1 rounded-sm hover:bg-grove-amber/10 transition-colors flex items-center gap-2 disabled:opacity-50"
-              >
-                <span className="text-sm">🎲</span> Load Architectural Prompt
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={loadSignalWatchTemplate}
+                  disabled={foundry.isCompiling}
+                  className="text-[10px] text-grove-amber border border-grove-amber/30 px-2 py-1 rounded-sm hover:bg-grove-amber/10 transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  <span className="text-sm">📋</span> Load Example
+                </button>
+                <button
+                  onClick={loadBlankTemplate}
+                  disabled={foundry.isCompiling}
+                  className="text-[10px] text-grove-text-dim border border-grove-border px-2 py-1 rounded-sm hover:bg-grove-amber/5 transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  <span className="text-sm">📝</span> Blank Template
+                </button>
+                <button
+                  onClick={injectRandomHeroPrompt}
+                  disabled={foundry.isCompiling}
+                  className="text-[10px] text-grove-amber border border-grove-amber/30 px-2 py-1 rounded-sm hover:bg-grove-amber/10 transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  <span className="text-sm">🎲</span> Load Architectural Prompt
+                </button>
+              </div>
             </div>
 
             <textarea
@@ -118,7 +149,7 @@ export function FoundryPane() {
               onChange={(e) => dispatch({ type: 'SET_FOUNDRY_INPUT', input: e.target.value })}
               placeholder="e.g., A local agent that reads my Notion inbox, categorizes tasks by urgency, and autonomously drafts status reports..."
               disabled={foundry.isCompiling}
-              className="w-full h-40 bg-grove-bg border border-grove-border p-4 font-mono text-sm text-grove-text placeholder:text-grove-text-dim focus:border-grove-amber focus:outline-none resize-none disabled:opacity-50"
+              className="w-full min-h-[10rem] max-h-[50vh] overflow-y-auto bg-grove-bg border border-grove-border p-4 font-mono text-sm text-grove-text placeholder:text-grove-text-dim focus:border-grove-amber focus:outline-none resize-none disabled:opacity-50"
             />
             <div className="flex justify-between items-center">
               <div className="font-mono text-[10px] text-grove-text-dim uppercase">
