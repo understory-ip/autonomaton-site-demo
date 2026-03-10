@@ -1,1 +1,5 @@
 export { Dashboard } from './Dashboard'
+export { DashboardView } from './DashboardView'
+export { SubjectCard } from './SubjectCard'
+export { RatchetChart } from './RatchetChart'
+export { TierDistribution } from './TierDistribution'

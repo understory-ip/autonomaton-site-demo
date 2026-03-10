@@ -39,6 +39,13 @@ export interface SubjectTemplateConfig {
 export interface SubjectRequest {
   name: string
   timestamp: string
+  domainContext?: {
+    domainName: string
+    domainDescription: string
+    scoringFactors: Array<{ name: string; description: string; weight: number }>
+    signalTypes: Array<{ label: string; keywords: string[] }>
+    domainKeywords: string[]
+  }
 }
 
 export interface SubjectResponse {
@@ -87,6 +94,25 @@ export function serializeSubjectPrompt(
   config: SubjectTemplateConfig,
   request: SubjectRequest
 ): string {
+  // Build domain context section if available
+  const domainSection = request.domainContext ? `
+# DOMAIN CONTEXT (Use this to ground your assessment)
+domain: "${request.domainContext.domainName}"
+thesis: "${request.domainContext.domainDescription}"
+
+# SCORING FRAMEWORK (Evaluate subject against THESE specific factors)
+${request.domainContext.scoringFactors.map(f => `- ${f.name} (${Math.round(f.weight * 100)}%): ${f.description}`).join('\n')}
+
+# SIGNALS WE TRACK (Reference these when explaining relevance)
+${request.domainContext.signalTypes.map(s => `- ${s.label}: ${s.keywords.slice(0, 5).join(', ')}`).join('\n')}
+
+# DOMAIN KEYWORDS (Match against these for relevance)
+${request.domainContext.domainKeywords.slice(0, 10).join(', ')}
+
+IMPORTANT: Your rationale MUST reference the specific scoring factors above, not generic competitive analysis.
+Explain how this subject scores on each factor in our framework.
+` : ''
+
   return `# SIGNAL_WATCH_SUBJECT_RESEARCH v${config.version}
 # intent: ${config.intent}
 # tier: ${config.tier}
@@ -94,7 +120,7 @@ export function serializeSubjectPrompt(
 
 research_target: "${request.name}"
 timestamp: "${request.timestamp}"
-
+${domainSection}
 # RESPONSE_FORMAT
 schema:
   name: ${config.responseSchema.name}

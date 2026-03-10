@@ -26,6 +26,7 @@ export const initialState: AppState = {
 
   routingConfig: defaultRoutingConfig,
   zonesSchema: defaultZonesSchema,
+  voicePreset: 'strategic',
 
   // Pre-configured AI competitors for frictionless onboarding
   watchlist: DEFAULT_AI_WATCHLIST,
@@ -73,7 +74,7 @@ export const initialState: AppState = {
 
   simulateFailure: 'none',
   configRipple: false,
-  currentView: 'watchlist',
+  currentView: 'briefings',
 
   // Deck overlay (v0.7.1)
   // Synchronous localStorage check prevents UI flash on first visit
@@ -173,6 +174,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'UPDATE_ZONES_SCHEMA':
       return { ...state, zonesSchema: action.schema }
+
+    case 'UPDATE_VOICE_PRESET':
+      return { ...state, voicePreset: action.preset }
 
     case 'TRIGGER_CONFIG_RIPPLE':
       return { ...state, configRipple: true }
@@ -592,7 +596,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                     {
                       timestamp: new Date().toISOString(),
                       score: adjustment.proposedScore,
+                      delta: adjustment.delta,
                       reason: adjustment.reason,
+                      signalId: adjustment.signalIds?.[0] || null,
+                      approvedBy: 'human' as const,
                     },
                   ],
                 }

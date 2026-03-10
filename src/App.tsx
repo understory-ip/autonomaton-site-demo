@@ -24,7 +24,11 @@ import { BriefingInbox, BriefingDetailPane } from './components/Briefing'
 import { SignalFeed } from './components/SignalFeed'
 import { WatchlistDashboard, SubjectDetailPane } from './components/Watchlist'
 import { CommandBar } from './components/CommandBar'
+import { NavBar } from './components/Navigation'
+import { DashboardView } from './components/Dashboard'
+import { ConfigPanel } from './components/Config'
 import { useAppDispatch, useAppState } from './state/context'
+import type { CurrentView } from './state/types'
 import { executeCognitiveRequest, executeResearchRequest, type ResearchResult } from './services/CognitiveAdapter'
 import { shouldProposeSkill, generatePatternDescription, getAdjustmentPatternKey, getBriefMeOnPatternKey } from './services'
 import { defaultScanTemplate, serializeScanPrompt, parseScanResponse, hashScanConfig } from './config/prompts/scan.template'
@@ -85,7 +89,7 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [trainingComplete, setTrainingComplete] = useState(loadTrainingComplete)
   const [domainConfig, setDomainConfig] = useState<DomainConfig | null>(loadDomainConfig)
-  const [domainSetupPhase, setDomainSetupPhase] = useState<'industry' | 'tracking' | null>(null)
+  const [domainSetupPhase, setDomainSetupPhase] = useState<'industry' | 'tracking' | 'awaiting_approval' | null>(null)
   const [pendingIndustry, setPendingIndustry] = useState<string | null>(null)
   const [selectedBriefing, setSelectedBriefing] = useState<Briefing | null>(null)
   const [selectedSubject, setSelectedSubject] = useState<WatchlistSubject | null>(null)
@@ -125,18 +129,25 @@ export default function App() {
     })
   }
 
-  // Animate pipeline stages
-  const animatePipeline = async () => {
-    const stages: Array<'telemetry' | 'recognition' | 'compilation' | 'approval' | 'execution'> = [
-      'telemetry', 'recognition', 'compilation', 'approval', 'execution'
+  // Animate pipeline stages — returns function to complete execution when LLM returns
+  const animatePipeline = async (): Promise<() => void> => {
+    const preExecution: Array<'telemetry' | 'recognition' | 'compilation' | 'approval'> = [
+      'telemetry', 'recognition', 'compilation', 'approval'
     ]
-    for (const stage of stages) {
+    // Quick animation through pre-execution stages
+    for (const stage of preExecution) {
       dispatch({ type: 'SET_PIPELINE_STAGE', stage, state: 'active' })
-      await sleep(400)
+      await sleep(200)
       dispatch({ type: 'SET_PIPELINE_STAGE', stage, state: 'complete' })
     }
-    await sleep(300)
-    dispatch({ type: 'RESET_PIPELINE' })
+    // Set execution to ACTIVE — stays glowing until LLM returns
+    dispatch({ type: 'SET_PIPELINE_STAGE', stage: 'execution', state: 'active' })
+
+    // Return function to complete pipeline when LLM responds
+    return () => {
+      dispatch({ type: 'SET_PIPELINE_STAGE', stage: 'execution', state: 'complete' })
+      setTimeout(() => dispatch({ type: 'RESET_PIPELINE' }), 500)
+    }
   }
 
   // Handle ad-hoc scan
@@ -175,8 +186,8 @@ export default function App() {
       message: `Ad-hoc scan initiated: "${query}"`,
     })
 
-    // Start pipeline animation
-    const pipelinePromise = animatePipeline()
+    // Start pipeline animation — execution stage stays active until LLM returns
+    const completePipeline = await animatePipeline()
 
     // Build structured scan request using versioned template
     const scanRequest = {
@@ -184,7 +195,7 @@ export default function App() {
       timestamp: new Date().toISOString(),
       subjects,
     }
-    const scanPrompt = serializeScanPrompt(defaultScanTemplate, scanRequest)
+    const scanPrompt = serializeScanPrompt(defaultScanTemplate, scanRequest, appState.voicePreset)
     const templateHash = hashScanConfig(defaultScanTemplate)
 
     try {
@@ -195,7 +206,8 @@ export default function App() {
         apiKey,
       })
 
-      await pipelinePromise
+      // LLM returned — complete the pipeline
+      completePipeline()
       const latencyMs = Date.now() - startTime
 
       // Parse the response using template parser
@@ -259,12 +271,34 @@ export default function App() {
         ? ` | ${research.searchCount} search${research.searchCount !== 1 ? 'es' : ''}, ${research.sources.length} source${research.sources.length !== 1 ? 's' : ''}`
         : ''
 
+      // Track cost in metrics for Ratchet chart
+      const scanCost = 0.01  // Tier 2 cost
+      dispatch({
+        type: 'UPDATE_METRICS',
+        delta: {
+          totalCost: scanCost,
+          interactionCount: 1,
+          costHistory: [{
+            timestamp: new Date().toISOString(),
+            cost: scanCost,
+            tier: 2,
+            intent: 'ad_hoc_scan',
+            skillMatch: false,
+          }],
+          tierHistory: [{
+            timestamp: new Date().toISOString(),
+            tier: 2,
+            intent: 'ad_hoc_scan',
+          }],
+        },
+      })
+
       addTelemetry({
         intent: 'ad_hoc_scan',
         tier: 2,
         zone: parsed.zone,
         confidence: 0.85,
-        cost: 0.01,
+        cost: scanCost,
         mode: 'interactive',
         latencyMs,
         humanFeedback: null,
@@ -291,7 +325,7 @@ export default function App() {
       }
 
     } catch (error) {
-      await pipelinePromise
+      completePipeline()
       const latencyMs = Date.now() - startTime
       const message = error instanceof Error ? error.message : String(error)
 
@@ -348,12 +382,20 @@ export default function App() {
       message: `Researching subject: "${name}"`,
     })
 
-    const pipelinePromise = animatePipeline()
+    const completePipeline = await animatePipeline()
 
     // Build structured research request using versioned template
+    // Include domain context so rationale is grounded in user's thesis
     const subjectRequest = {
       name,
       timestamp: new Date().toISOString(),
+      domainContext: domainConfig ? {
+        domainName: domainConfig.domain.name,
+        domainDescription: domainConfig.domain.description,
+        scoringFactors: domainConfig.scoringRubric.factors,
+        signalTypes: domainConfig.signalTypes.map(s => ({ label: s.label, keywords: s.keywords })),
+        domainKeywords: domainConfig.domainKeywords,
+      } : undefined,
     }
     const subjectPrompt = serializeSubjectPrompt(defaultSubjectTemplate, subjectRequest)
     const templateHash = hashSubjectConfig(defaultSubjectTemplate)
@@ -365,7 +407,7 @@ export default function App() {
         apiKey,
       })
 
-      await pipelinePromise
+      completePipeline()
       const latencyMs = Date.now() - startTime
 
       const parsed = parseSubjectResponse(result.text)
@@ -421,12 +463,34 @@ export default function App() {
 
       setBriefings(prev => [newBriefing, ...prev])
 
+      // Track cost in metrics for Ratchet chart
+      const subjectCost = 0.01
+      dispatch({
+        type: 'UPDATE_METRICS',
+        delta: {
+          totalCost: subjectCost,
+          interactionCount: 1,
+          costHistory: [{
+            timestamp: new Date().toISOString(),
+            cost: subjectCost,
+            tier: 2,
+            intent: 'add_subject',
+            skillMatch: false,
+          }],
+          tierHistory: [{
+            timestamp: new Date().toISOString(),
+            tier: 2,
+            intent: 'add_subject',
+          }],
+        },
+      })
+
       addTelemetry({
         intent: 'add_subject',
         tier: 2,
         zone: 'yellow',
         confidence: 0.85,
-        cost: 0.01,
+        cost: subjectCost,
         mode: 'interactive',
         latencyMs,
         humanFeedback: null,
@@ -435,7 +499,7 @@ export default function App() {
       })
 
     } catch (error) {
-      await pipelinePromise
+      completePipeline()
       const latencyMs = Date.now() - startTime
       const message = error instanceof Error ? error.message : String(error)
 
@@ -494,7 +558,7 @@ export default function App() {
       message: `Configuring domain: "${industry}" with preferences: "${trackingPrefs}"`,
     })
 
-    const pipelinePromise = animatePipeline()
+    const completePipeline = await animatePipeline()
 
     // Build structured domain request using versioned template
     const domainRequest = {
@@ -512,7 +576,7 @@ export default function App() {
         apiKey,
       })
 
-      await pipelinePromise
+      completePipeline()
       const latencyMs = Date.now() - startTime
 
       const parsed = parseDomainResponse(result.text, domainRequest)
@@ -555,12 +619,34 @@ export default function App() {
 
       setBriefings(prev => [newBriefing, ...prev])
 
+      // Track cost in metrics for Ratchet chart
+      const domainCost = 0.01
+      dispatch({
+        type: 'UPDATE_METRICS',
+        delta: {
+          totalCost: domainCost,
+          interactionCount: 1,
+          costHistory: [{
+            timestamp: new Date().toISOString(),
+            cost: domainCost,
+            tier: 2,
+            intent: 'configure_domain',
+            skillMatch: false,
+          }],
+          tierHistory: [{
+            timestamp: new Date().toISOString(),
+            tier: 2,
+            intent: 'configure_domain',
+          }],
+        },
+      })
+
       addTelemetry({
         intent: 'configure_domain',
         tier: 2,
         zone: 'yellow',
         confidence: 0.85,
-        cost: 0.01,
+        cost: domainCost,
         mode: 'interactive',
         latencyMs,
         humanFeedback: null,
@@ -569,7 +655,7 @@ export default function App() {
       })
 
     } catch (error) {
-      await pipelinePromise
+      completePipeline()
       const latencyMs = Date.now() - startTime
       const message = error instanceof Error ? error.message : String(error)
 
@@ -914,72 +1000,141 @@ export default function App() {
     })
   }
 
+  // View navigation
+  const handleViewChange = (view: CurrentView) => {
+    dispatch({ type: 'SET_VIEW', view })
+  }
+
+  // Render view content based on currentView
+  const renderViewContent = () => {
+    switch (appState.currentView) {
+      case 'dashboard':
+        return (
+          <DashboardView
+            subjects={subjects}
+            briefings={briefings}
+            costHistory={appState.metrics.costHistory}
+            tierHistory={appState.metrics.tierHistory}
+            onSubjectClick={handleSubjectSelect}
+            onBriefingClick={handleDrillDown}
+            onViewBriefings={() => handleViewChange('briefings')}
+          />
+        )
+
+      case 'briefings':
+        return (
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            {/* LEFT: Signal Feed (collapsible drill-down) */}
+            <div
+              className={`border-r border-grove-border transition-all duration-300 flex-shrink-0 ${
+                isSignalPanelOpen ? 'w-72' : 'w-0'
+              } overflow-hidden`}
+            >
+              <div className="w-72 h-full flex flex-col">
+                <div className="flex items-center justify-between p-3 border-b border-grove-border bg-grove-bg2">
+                  <span className="text-sm font-mono text-grove-text-dim truncate">
+                    {selectedSubject
+                      ? selectedSubject.name
+                      : selectedBriefing
+                        ? selectedBriefing.title
+                        : 'Signal Feed'}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setIsSignalPanelOpen(false)
+                      setSelectedSubject(null)
+                      setSelectedBriefing(null)
+                    }}
+                    className="text-grove-text-dim hover:text-grove-text ml-2"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {selectedSubject ? (
+                    <SubjectDetailPane subject={selectedSubject} />
+                  ) : selectedBriefing ? (
+                    <BriefingDetailPane briefing={selectedBriefing} />
+                  ) : (
+                    <SignalFeed />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* CENTER: Briefing Inbox (2/3 of remaining space) */}
+            <div className="flex-[2] min-w-0 border-r border-grove-border">
+              <BriefingInbox
+                briefings={briefings}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onApproveSubject={handleApproveSubject}
+                onRejectSubject={handleRejectSubject}
+                onApproveDomainConfig={handleApproveDomainConfig}
+                onRejectDomainConfig={handleRejectDomainConfig}
+                onDrillDown={handleDrillDown}
+              />
+            </div>
+
+            {/* RIGHT: Watchlist Scorecard (1/3 of remaining space) */}
+            <div className="flex-1 min-w-0">
+              <WatchlistDashboard
+                subjects={subjects}
+                onSubjectSelect={handleSubjectSelect}
+              />
+            </div>
+          </div>
+        )
+
+      case 'config':
+        return (
+          <ConfigPanel
+            subjects={subjects}
+            onRemoveSubject={(id) => {
+              setSubjects(prev => prev.filter(s => s.id !== id))
+              addTelemetry({
+                intent: 'remove_subject',
+                tier: 0,
+                zone: 'green',
+                confidence: 1,
+                cost: 0,
+                mode: 'interactive',
+                latencyMs: 0,
+                humanFeedback: null,
+                skillMatch: null,
+                message: `Removed subject: ${id}`,
+              })
+            }}
+          />
+        )
+
+      case 'flywheel':
+        return (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center p-8">
+              <div className="text-4xl mb-4">⟳</div>
+              <h2 className="font-mono text-xl text-grove-text mb-2">Flywheel View</h2>
+              <p className="text-sm text-grove-text-dim font-mono">
+                Coming in Checkpoint 3
+              </p>
+            </div>
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="h-screen bg-grove-bg text-grove-text flex flex-col overflow-hidden">
       <Header />
+      <NavBar currentView={appState.currentView} onViewChange={handleViewChange} />
       <PipelineVisualization />
 
-      {/* Main Content: 2/3 briefing, 1/3 watchlist */}
+      {/* Main Content */}
       <main className="flex-1 flex min-h-0 overflow-hidden">
-        {/* LEFT: Signal Feed (collapsible drill-down) */}
-        <div
-          className={`border-r border-grove-border transition-all duration-300 flex-shrink-0 ${
-            isSignalPanelOpen ? 'w-72' : 'w-0'
-          } overflow-hidden`}
-        >
-          <div className="w-72 h-full flex flex-col">
-            <div className="flex items-center justify-between p-3 border-b border-grove-border bg-grove-bg2">
-              <span className="text-sm font-mono text-grove-text-dim truncate">
-                {selectedSubject
-                  ? selectedSubject.name
-                  : selectedBriefing
-                    ? selectedBriefing.title
-                    : 'Signal Feed'}
-              </span>
-              <button
-                onClick={() => {
-                  setIsSignalPanelOpen(false)
-                  setSelectedSubject(null)
-                  setSelectedBriefing(null)
-                }}
-                className="text-grove-text-dim hover:text-grove-text ml-2"
-              >
-                ×
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              {selectedSubject ? (
-                <SubjectDetailPane subject={selectedSubject} />
-              ) : selectedBriefing ? (
-                <BriefingDetailPane briefing={selectedBriefing} />
-              ) : (
-                <SignalFeed />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* CENTER: Briefing Inbox (2/3 of remaining space) */}
-        <div className="flex-[2] min-w-0 border-r border-grove-border">
-          <BriefingInbox
-            briefings={briefings}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            onApproveSubject={handleApproveSubject}
-            onRejectSubject={handleRejectSubject}
-            onApproveDomainConfig={handleApproveDomainConfig}
-            onRejectDomainConfig={handleRejectDomainConfig}
-            onDrillDown={handleDrillDown}
-          />
-        </div>
-
-        {/* RIGHT: Watchlist Scorecard (1/3 of remaining space) */}
-        <div className="flex-1 min-w-0">
-          <WatchlistDashboard
-            subjects={subjects}
-            onSubjectSelect={handleSubjectSelect}
-          />
-        </div>
+        {renderViewContent()}
       </main>
 
       {/* Command Bar - styled prominently above telemetry */}
@@ -991,7 +1146,13 @@ export default function App() {
             setDomainSetupPhase('tracking')
           } else if (domainSetupPhase === 'tracking' && pendingIndustry) {
             handleConfigureDomain(pendingIndustry, input)
-            // Phase will reset after approval
+            // Move to awaiting approval phase - user must approve domain config before training
+            setDomainSetupPhase('awaiting_approval')
+            // Switch to Briefings view to show the approval card
+            dispatch({ type: 'SET_VIEW', view: 'briefings' })
+          } else if (domainSetupPhase === 'awaiting_approval') {
+            // User must approve domain config before continuing - do nothing
+            // The briefings view shows the approval card
           }
           // Phase 2: Subject training
           else if (isTrainingMode && input.toLowerCase().trim() === 'done') {
@@ -1001,7 +1162,21 @@ export default function App() {
             }
             handleCompleteTraining()
           } else if (isTrainingMode) {
-            handleAddSubject(input)
+            // Smart routing: if asking for a briefing on an EXISTING subject, do scan instead
+            const lowerInput = input.toLowerCase()
+            const briefTriggers = ['brief me on', 'brief me about', 'what about', 'update on', 'news on', 'tell me about']
+            const isBriefRequest = briefTriggers.some(t => lowerInput.includes(t))
+            const matchesExistingSubject = subjects.some(s =>
+              s.keywords.some(kw => lowerInput.includes(kw.toLowerCase())) ||
+              lowerInput.includes(s.name.toLowerCase())
+            )
+
+            if (isBriefRequest && matchesExistingSubject) {
+              // User is asking about existing subject - do scan, not add_subject
+              handleScan(input)
+            } else {
+              handleAddSubject(input)
+            }
           }
           // Phase 3: Operational
           else {
@@ -1014,6 +1189,8 @@ export default function App() {
             ? 'What industry or domain are you monitoring? (e.g., AI/ML, Healthcare, Fintech)'
             : domainSetupPhase === 'tracking'
             ? `Tracking ${pendingIndustry}. What signals matter? (e.g., funding, launches, pricing, partnerships...)`
+            : domainSetupPhase === 'awaiting_approval'
+            ? '↑ Review and approve domain configuration above to continue'
             : isTrainingMode
             ? subjects.length === 0
               ? `${domainConfig?.domain.name || 'Domain'}: Add your first competitor`

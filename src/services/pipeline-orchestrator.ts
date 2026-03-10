@@ -294,14 +294,25 @@ export async function completeExecution(
   dispatch({ type: 'ADD_TELEMETRY', entry: telemetryEntry })
 
   // Update metrics
+  const now = new Date().toISOString()
   dispatch({
     type: 'UPDATE_METRICS',
     delta: {
       totalCost: decision.cost,
       interactionCount: 1,
-      tierHistory: [decision.tier],
+      tierHistory: [{
+        timestamp: now,
+        tier: decision.tier,
+        intent: decision.intent,
+      }],
       localCount: decision.sovereignty === 'local' ? 1 : 0,
-      costHistory: [decision.cost],
+      costHistory: [{
+        timestamp: now,
+        cost: decision.cost,
+        tier: decision.tier,
+        intent: decision.intent,
+        skillMatch: !!decision.skillMatch,
+      }],
     },
   })
 

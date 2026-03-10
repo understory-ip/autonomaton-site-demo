@@ -10,9 +10,18 @@ import type { Briefing } from '../../state/types'
 /**
  * Strip <cite> tags from Claude's web search response
  * Sources are tracked separately, so we just need clean text
+ * Handles: closed tags, unclosed tags, and self-closing tags
  */
 function stripCitations(text: string): string {
-  return text.replace(/<cite[^>]*>([\s\S]*?)<\/cite>/gi, '$1')
+  return text
+    // First: closed <cite>content</cite> → keep content
+    .replace(/<cite[^>]*>([\s\S]*?)<\/cite>/gi, '$1')
+    // Second: unclosed <cite...> at end of string → remove entirely
+    .replace(/<cite[^>]*>(?![^<]*<\/cite>)[\s\S]*$/gi, '')
+    // Third: stray opening <cite> tags without content → remove
+    .replace(/<cite[^>]*>/gi, '')
+    // Fourth: stray closing </cite> tags → remove
+    .replace(/<\/cite>/gi, '')
 }
 
 interface RedZoneTakeoverProps {
@@ -97,6 +106,57 @@ export function RedZoneTakeover({
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {/* Proposed Score Adjustments — positioned between Key Findings and Sources for intuitive UX */}
+              {briefing.pendingAdjustments && briefing.pendingAdjustments.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-mono text-xs text-grove-text-dim uppercase tracking-wider mb-3">
+                    Proposed Score Adjustments
+                  </h4>
+                  <div className="space-y-4">
+                    {briefing.pendingAdjustments.map((adj) => {
+                      const deltaDisplay = adj.delta > 0
+                        ? `+${(adj.delta * 100).toFixed(1)}%`
+                        : `${(adj.delta * 100).toFixed(1)}%`
+
+                      return (
+                        <div key={adj.id} className="p-4 bg-grove-bg2 border border-grove-border">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="font-serif text-lg text-grove-text">{adj.subjectName}</span>
+                              <span className="font-mono text-xl font-bold text-zone-red">{deltaDisplay}</span>
+                            </div>
+                            <span className="text-sm text-grove-text-dim font-mono">
+                              Confidence: {(adj.confidence * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                          <p className="text-grove-text-dim mb-4">{stripCitations(adj.reason)}</p>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => {
+                                onApprove?.(adj.id)
+                                onClose()
+                              }}
+                              className="px-4 py-2 bg-zone-green text-white font-mono hover:bg-zone-green/80 transition-colors"
+                            >
+                              Approve Adjustment
+                            </button>
+                            <button
+                              onClick={() => {
+                                onReject?.(adj.id)
+                                onClose()
+                              }}
+                              className="px-4 py-2 border border-grove-border text-grove-text-dim font-mono hover:bg-grove-bg3 transition-colors"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
 
@@ -197,56 +257,6 @@ export function RedZoneTakeover({
             </section>
           )}
 
-          {/* Pending Adjustments */}
-          {briefing.pendingAdjustments && briefing.pendingAdjustments.length > 0 && (
-            <section className="mb-8">
-              <h3 className="font-mono text-xs text-grove-text-dim uppercase tracking-wider mb-4">
-                Proposed Score Adjustments
-              </h3>
-              <div className="space-y-4">
-                {briefing.pendingAdjustments.map((adj) => {
-                  const deltaDisplay = adj.delta > 0
-                    ? `+${(adj.delta * 100).toFixed(1)}%`
-                    : `${(adj.delta * 100).toFixed(1)}%`
-
-                  return (
-                    <div key={adj.id} className="p-4 bg-grove-bg2 border border-grove-border">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="font-serif text-lg text-grove-text">{adj.subjectName}</span>
-                          <span className="font-mono text-xl font-bold text-zone-red">{deltaDisplay}</span>
-                        </div>
-                        <span className="text-sm text-grove-text-dim font-mono">
-                          Confidence: {(adj.confidence * 100).toFixed(0)}%
-                        </span>
-                      </div>
-                      <p className="text-grove-text-dim mb-4">{stripCitations(adj.reason)}</p>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            onApprove?.(adj.id)
-                            onClose()
-                          }}
-                          className="px-4 py-2 bg-zone-green text-white font-mono hover:bg-zone-green/80 transition-colors"
-                        >
-                          Approve Adjustment
-                        </button>
-                        <button
-                          onClick={() => {
-                            onReject?.(adj.id)
-                            onClose()
-                          }}
-                          className="px-4 py-2 border border-grove-border text-grove-text-dim font-mono hover:bg-grove-bg3 transition-colors"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
-          )}
         </div>
       </main>
 

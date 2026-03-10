@@ -15,6 +15,7 @@
  */
 
 import type { WatchlistSubject } from '../../state/types'
+import { getVoiceInstructions, type VoicePresetId } from '../voice-presets'
 
 // =============================================================================
 // TYPES
@@ -99,14 +100,7 @@ export const defaultScanTemplate: ScanTemplateConfig = {
     'Focus searches on the watchlist subjects when they are relevant to the query.',
     'DO NOT fabricate sources — only cite what you actually found via web search.',
 
-    // Voice & Style (jim-voice-writing-style)
-    'LEAD WITH INSIGHT: Start with the "so what?" — strategic implication first, then supporting logic.',
-    'NO HEDGING: Avoid "potentially", "possibly", "might", "could", "seems like". State findings directly.',
-    'ACTIVE VOICE: "Anthropic filed lawsuits" not "Lawsuits were filed by Anthropic".',
-    'STRATEGIC FRAMING: Tie every finding to business impact — competitive position, market dynamics, revenue implications.',
-    'SENTENCE ARCHITECTURE: Short sentences for impact. Longer ones for explanation. Never ramble.',
-
-    // Output format
+    // Output format (voice instructions are injected dynamically)
     'Write a 200-300 word analysis synthesizing your research findings.',
     'Extract 3-5 key findings as concise, action-oriented bullet points.',
     'Determine zone by maximum |delta| magnitude: <5% green, 5-15% yellow, >=15% red.',
@@ -121,7 +115,8 @@ export const defaultScanTemplate: ScanTemplateConfig = {
 
 export function serializeScanPrompt(
   config: ScanTemplateConfig,
-  request: ScanRequest
+  request: ScanRequest,
+  voicePreset: VoicePresetId = 'strategic'
 ): string {
   const subjectYaml = request.subjects.map(s =>
     `    - id: "${s.id}"
@@ -130,6 +125,9 @@ export function serializeScanPrompt(
       tier: ${s.tier}
       score: ${(s.baselineScore * 100).toFixed(0)}`
   ).join('\n')
+
+  // Get voice-specific instructions based on preset
+  const voiceInstructions = getVoiceInstructions(voicePreset)
 
   return `# SIGNAL_WATCH_SCAN v${config.version}
 # intent: ${config.intent}
@@ -161,6 +159,8 @@ schema:
 
 # INSTRUCTIONS
 ${config.instructions.map((i, idx) => `${idx + 1}. ${i}`).join('\n')}
+
+${voiceInstructions}
 
 # OUTPUT
 Return valid JSON matching the schema above. Use web search to gather real information.`

@@ -405,7 +405,7 @@ export interface TelemetryEntry {
 
 export type Mode = 'demo' | 'interactive'
 
-export type CurrentView = 'sandbox' | 'foundry' | 'watchlist'
+export type CurrentView = 'dashboard' | 'briefings' | 'config' | 'flywheel'
 
 export interface ModelConfig {
   provider: string
@@ -451,13 +451,29 @@ export type FailureType =
 // DASHBOARD METRICS — Signal Watch specific
 // =============================================================================
 
+/** Cost history entry for Ratchet chart visualization */
+export interface CostHistoryEntry {
+  timestamp: string     // ISO timestamp
+  cost: number          // Actual cost in dollars
+  tier: Tier            // Which tier handled this
+  intent: string        // What intent triggered this
+  skillMatch: boolean   // Was this handled by a cached skill?
+}
+
+/** Tier usage entry for distribution chart */
+export interface TierHistoryEntry {
+  timestamp: string
+  tier: Tier
+  intent: string
+}
+
 export interface Metrics {
   totalCost: number
   interactionCount: number
-  tierHistory: number[]
+  tierHistory: TierHistoryEntry[]
   localCount: number
   skillsFired: number
-  costHistory: number[]
+  costHistory: CostHistoryEntry[]
   // Signal Watch extensions
   signalsProcessed?: number
   signalsByThreatLevel?: Record<SignalLevel, number>
@@ -484,6 +500,7 @@ export interface AppState {
   // Declarative configuration (editable)
   routingConfig: RoutingConfig
   zonesSchema: ZonesSchema
+  voicePreset: 'strategic' | 'executive' | 'operator'
 
   // Pipeline state
   pipeline: PipelineState
@@ -542,6 +559,7 @@ export type AppAction =
   // Config
   | { type: 'UPDATE_ROUTING_CONFIG'; config: RoutingConfig }
   | { type: 'UPDATE_ZONES_SCHEMA'; schema: ZonesSchema }
+  | { type: 'UPDATE_VOICE_PRESET'; preset: 'strategic' | 'executive' | 'operator' }
   | { type: 'TRIGGER_CONFIG_RIPPLE' }
   | { type: 'CLEAR_CONFIG_RIPPLE' }
 

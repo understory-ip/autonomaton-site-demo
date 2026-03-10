@@ -12,9 +12,18 @@ import type { Briefing, ScoreAdjustment, ProposedSubject, DomainConfig, Research
 /**
  * Strip <cite> tags from Claude's web search response
  * Sources are tracked separately, so we just need clean text
+ * Handles: closed tags, unclosed tags, and self-closing tags
  */
 function stripCitations(text: string): string {
-  return text.replace(/<cite[^>]*>([\s\S]*?)<\/cite>/gi, '$1')
+  return text
+    // First: closed <cite>content</cite> → keep content
+    .replace(/<cite[^>]*>([\s\S]*?)<\/cite>/gi, '$1')
+    // Second: unclosed <cite...> at end of string → remove entirely
+    .replace(/<cite[^>]*>(?![^<]*<\/cite>)[\s\S]*$/gi, '')
+    // Third: stray opening <cite> tags without content → remove
+    .replace(/<cite[^>]*>/gi, '')
+    // Fourth: stray closing </cite> tags → remove
+    .replace(/<\/cite>/gi, '')
 }
 
 interface BriefingEntryProps {
