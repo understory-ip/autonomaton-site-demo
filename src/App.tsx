@@ -1,5 +1,5 @@
 /**
- * Signal Watch — Competitive Intelligence Monitor
+ * Signal Watch — Competitive Research Autonomaton
  *
  * Layout:
  * ┌─────────────────────────────────────────────────────────────┐
@@ -36,6 +36,7 @@ import { shouldProposeSkill, generatePatternDescription, getAdjustmentPatternKey
 import { defaultScanTemplate, serializeScanPrompt, parseScanResponse, hashScanConfig } from './config/prompts/scan.template'
 import { defaultSubjectTemplate, serializeSubjectPrompt, parseSubjectResponse, hashSubjectConfig } from './config/prompts/subject.template'
 import { defaultDomainTemplate, serializeDomainPrompt, parseDomainResponse, hashDomainConfig } from './config/prompts/domain.template'
+import { extractSubjectEntity, HAIKU_EXTRACTION_COST } from './services/entity-extractor'
 import type { Briefing, WatchlistSubject, TelemetryEntry, ScoreHistoryEntry, ScoreAdjustment, ProposedSubject, DomainConfig, ResearchSection } from './state/types'
 
 const API_KEY_STORAGE_KEY = 'signal_watch_api_key'
@@ -396,6 +397,58 @@ export default function App() {
     setIsProcessing(true)
     const startTime = Date.now()
 
+    // TIER 1: Fast entity extraction with Haiku
+    addTelemetry({
+      intent: 'extract_entity',
+      tier: 1,
+      zone: 'green',
+      confidence: 0.9,
+      cost: HAIKU_EXTRACTION_COST,
+      mode: 'demo',
+      latencyMs: 0,
+      humanFeedback: null,
+      skillMatch: null,
+      message: `Extracting entity from: "${name}"`,
+    })
+
+    const extraction = await extractSubjectEntity(name, apiKey)
+    const extractionLatency = Date.now() - startTime
+
+    addTelemetry({
+      intent: 'extract_entity',
+      tier: 1,
+      zone: 'green',
+      confidence: extraction.confidence,
+      cost: HAIKU_EXTRACTION_COST,
+      mode: 'demo',
+      latencyMs: extractionLatency,
+      humanFeedback: null,
+      skillMatch: null,
+      message: `Extracted: "${extraction.name}"${extraction.typeHint ? ` (${extraction.typeHint})` : ''}${extraction.tierHint ? ` [${extraction.tierHint}]` : ''}`,
+    })
+
+    // Track Tier 1 cost in metrics for Ratchet/Flywheel
+    dispatch({
+      type: 'UPDATE_METRICS',
+      delta: {
+        totalCost: HAIKU_EXTRACTION_COST,
+        interactionCount: 0, // Don't double-count, Tier 2 will add 1
+        costHistory: [{
+          timestamp: new Date().toISOString(),
+          cost: HAIKU_EXTRACTION_COST,
+          tier: 1,
+          intent: 'extract_entity',
+          skillMatch: false,
+        }],
+        tierHistory: [{
+          timestamp: new Date().toISOString(),
+          tier: 1,
+          intent: 'extract_entity',
+        }],
+      },
+    })
+
+    // TIER 2: Deep research with Sonnet
     addTelemetry({
       intent: 'add_subject',
       tier: 2,
@@ -406,15 +459,15 @@ export default function App() {
       latencyMs: 0,
       humanFeedback: null,
       skillMatch: null,
-      message: `Researching subject: "${name}"`,
+      message: `Researching subject: "${extraction.name}"`,
     })
 
     const completePipeline = await animatePipeline()
 
     // Build structured research request using versioned template
-    // Include domain context so rationale is grounded in user's thesis
+    // Include domain context and Tier 1 hints so research is grounded
     const subjectRequest = {
-      name,
+      name: extraction.name,
       timestamp: new Date().toISOString(),
       domainContext: domainConfig ? {
         domainName: domainConfig.domain.name,
@@ -423,6 +476,9 @@ export default function App() {
         signalTypes: domainConfig.signalTypes.map(s => ({ label: s.label, keywords: s.keywords })),
         domainKeywords: domainConfig.domainKeywords,
       } : undefined,
+      // Pass hints from Tier 1 extraction
+      typeHint: extraction.typeHint,
+      tierHint: extraction.tierHint,
     }
     const subjectPrompt = serializeSubjectPrompt(defaultSubjectTemplate, subjectRequest)
     const templateHash = hashSubjectConfig(defaultSubjectTemplate)
@@ -469,6 +525,27 @@ export default function App() {
         rationale: parsed.rationale,
       }
 
+      // Extract key sections from rationale for highlights
+      // Looks for patterns like "MARKET DISRUPTION (28%):" or "TECHNICAL ADVANCEMENT:"
+      const sectionPattern = /([A-Z][A-Z\s]+)\s*(?:\((\d+%)\))?:\s*([^A-Z]+?)(?=[A-Z][A-Z\s]+(?:\(\d+%\))?:|$)/g
+      const highlights: Array<{ text: string; zone: 'green' | 'yellow' | 'red' }> = []
+      let match
+      while ((match = sectionPattern.exec(parsed.rationale)) !== null) {
+        const header = match[1].trim()
+        const pct = match[2] || ''
+        const content = match[3].trim().slice(0, 200) // Truncate long content
+        highlights.push({
+          text: `${header}${pct ? ` (${pct})` : ''}: ${content}`,
+          zone: 'green',
+        })
+      }
+
+      // Fallback if no sections found - use first 3 sentences
+      if (highlights.length === 0) {
+        const sentences = parsed.rationale.split(/[.!?]+/).filter(s => s.trim()).slice(0, 3)
+        sentences.forEach(s => highlights.push({ text: s.trim(), zone: 'green' }))
+      }
+
       // Create YELLOW briefing with pending subject
       const newBriefing: Briefing = {
         id: `brief-${Date.now()}`,
@@ -477,13 +554,8 @@ export default function App() {
         timestamp: new Date().toISOString(),
         tier: 2,
         signalCount: 0,
-        summary: parsed.rationale,
-        highlights: [
-          { text: `Type: ${parsed.type}`, zone: 'green' },
-          { text: `Tier: ${parsed.tier}`, zone: 'green' },
-          { text: `Keywords: ${parsed.keywords.slice(0, 5).join(', ')}`, zone: 'green' },
-          { text: `Initial Score: ${Math.round(parsed.initialScore * 100)}`, zone: 'yellow' },
-        ],
+        summary: `${parsed.type} · ${parsed.tier} · Score: ${Math.round(parsed.initialScore * 100)}/100`,
+        highlights,
         pendingSubject: proposedSubject,
         zone: 'yellow',
         status: 'delivered',
@@ -1035,11 +1107,60 @@ export default function App() {
 
   // CommandBar submit handler (extracted for reuse)
   const handleCommandBarSubmit = (input: string) => {
+    const apiKey = localStorage.getItem(API_KEY_STORAGE_KEY)
+
     // Phase 1: Domain setup
     if (domainSetupPhase === 'industry') {
+      // ANDON GATE: Check for API key first
+      if (!apiKey) {
+        addTelemetry({
+          intent: 'configure_domain',
+          tier: 0,
+          zone: 'red',
+          confidence: 0,
+          cost: 0,
+          mode: 'interactive',
+          latencyMs: 0,
+          humanFeedback: null,
+          skillMatch: null,
+          message: `⚠️ API key required. Click "Configure" in the header (upper right) to set your Anthropic API key.`,
+        })
+        return
+      }
+
+      // Key exists - proceed with domain setup
+      addTelemetry({
+        intent: 'configure_domain',
+        tier: 1,
+        zone: 'green',
+        confidence: 0.9,
+        cost: 0,
+        mode: 'demo',
+        latencyMs: 50,
+        humanFeedback: null,
+        skillMatch: null,
+        message: `Domain identified: "${input}" — what signals do you want to track?`,
+      })
       setPendingIndustry(input)
       setDomainSetupPhase('tracking')
     } else if (domainSetupPhase === 'tracking' && pendingIndustry) {
+      // ANDON GATE: Check for API key
+      if (!apiKey) {
+        addTelemetry({
+          intent: 'configure_domain',
+          tier: 0,
+          zone: 'red',
+          confidence: 0,
+          cost: 0,
+          mode: 'interactive',
+          latencyMs: 0,
+          humanFeedback: null,
+          skillMatch: null,
+          message: `⚠️ API key required. Click "Configure" in the header to set your Anthropic API key.`,
+        })
+        return
+      }
+
       handleConfigureDomain(pendingIndustry, input)
       setDomainSetupPhase('awaiting_approval')
       dispatch({ type: 'SET_VIEW', view: 'briefings' })
@@ -1083,8 +1204,8 @@ export default function App() {
     }
     if (isTrainingMode) {
       return subjects.length === 0
-        ? `${domainConfig?.domain.name || 'Domain'}: Add your first competitor`
-        : `Added ${subjects.length} subject${subjects.length > 1 ? 's' : ''}. Add more, or type "done" to start monitoring`
+        ? `Add your first subject (e.g., "Anthropic as a direct competitor")`
+        : `Added ${subjects.length}. Try: "Deepseek as emerging player" or "done" to start`
     }
     return 'Brief me on... (e.g., "Anthropic this week", "OpenAI pricing changes")'
   }

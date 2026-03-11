@@ -46,6 +46,9 @@ export interface SubjectRequest {
     signalTypes: Array<{ label: string; keywords: string[] }>
     domainKeywords: string[]
   }
+  // Hints from Tier 1 (Haiku) entity extraction
+  typeHint?: 'competitor' | 'partner' | 'market' | 'technology' | 'regulatory'
+  tierHint?: 'primary' | 'secondary' | 'emerging'
 }
 
 export interface SubjectResponse {
@@ -113,6 +116,13 @@ IMPORTANT: Your rationale MUST reference the specific scoring factors above, not
 Explain how this subject scores on each factor in our framework.
 ` : ''
 
+  // Build hints section from Tier 1 extraction (if available)
+  const hintsSection = (request.typeHint || request.tierHint) ? `
+# HINTS (from Tier 1 pre-classification — use as guidance, verify with research)
+${request.typeHint ? `suggested_type: "${request.typeHint}"` : ''}
+${request.tierHint ? `suggested_tier: "${request.tierHint}"` : ''}
+` : ''
+
   return `# SIGNAL_WATCH_SUBJECT_RESEARCH v${config.version}
 # intent: ${config.intent}
 # tier: ${config.tier}
@@ -120,7 +130,7 @@ Explain how this subject scores on each factor in our framework.
 
 research_target: "${request.name}"
 timestamp: "${request.timestamp}"
-${domainSection}
+${domainSection}${hintsSection}
 # RESPONSE_FORMAT
 schema:
   name: ${config.responseSchema.name}

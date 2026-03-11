@@ -284,6 +284,50 @@ function AdjustmentCard({
 }
 
 /**
+ * Parse rationale into sections based on UPPERCASE HEADERS (NN%):
+ * Returns array of { header, percentage, content } or null for intro/outro text
+ */
+function parseRationaleSections(rationale: string): Array<{ header: string | null; percentage: string | null; content: string }> {
+  // Match patterns like "MARKET DISRUPTION POTENTIAL (28%):" or "TECHNICAL ADVANCEMENT (24%):"
+  const sectionPattern = /([A-Z][A-Z\s]+)\s*\((\d+%)\):\s*/g
+  const sections: Array<{ header: string | null; percentage: string | null; content: string }> = []
+
+  let lastIndex = 0
+  let match
+
+  while ((match = sectionPattern.exec(rationale)) !== null) {
+    // Capture any text before this section header
+    if (match.index > lastIndex) {
+      const beforeText = rationale.slice(lastIndex, match.index).trim()
+      if (beforeText) {
+        sections.push({ header: null, percentage: null, content: beforeText })
+      }
+    }
+
+    // Find where this section ends (next section or end of string)
+    const nextMatch = sectionPattern.exec(rationale)
+    const endIndex = nextMatch ? nextMatch.index : rationale.length
+    sectionPattern.lastIndex = match.index + match[0].length // Reset for next iteration
+
+    const content = rationale.slice(match.index + match[0].length, endIndex).trim()
+    sections.push({
+      header: match[1].trim(),
+      percentage: match[2],
+      content,
+    })
+
+    lastIndex = endIndex
+  }
+
+  // If no sections found, return the whole thing as one section
+  if (sections.length === 0) {
+    return [{ header: null, percentage: null, content: rationale }]
+  }
+
+  return sections
+}
+
+/**
  * Subject proposal card for training mode
  */
 function SubjectProposalCard({
@@ -302,67 +346,81 @@ function SubjectProposalCard({
   }
 
   const typeIcons: Record<string, string> = {
-    competitor: '⚔',
+    competitor: '⚔️',
     partner: '🤝',
     market: '📊',
     technology: '🔬',
     regulatory: '📋',
   }
 
+  const rationaleSections = parseRationaleSections(subject.rationale)
+
   return (
     <div className="bg-grove-bg border border-grove-border p-4">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <span className="font-serif text-lg text-grove-text">{subject.name}</span>
-          <span className="ml-2">{typeIcons[subject.type] || '•'}</span>
+      {/* Header: Name + Score + Type Badge */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">{typeIcons[subject.type] || '•'}</span>
+          <div>
+            <h3 className="font-serif text-xl text-grove-text">{subject.name}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-xs font-mono uppercase px-2 py-0.5 border ${tierColors[subject.tier] || 'text-grove-text-dim'} border-current`}>
+                {subject.tier} {subject.type}
+              </span>
+            </div>
+          </div>
         </div>
-        <span className={`text-xs font-mono uppercase ${tierColors[subject.tier] || 'text-grove-text-dim'}`}>
-          {subject.tier}
-        </span>
-      </div>
-
-      {/* Type & Initial Score */}
-      <div className="flex items-center gap-4 mb-3 text-sm">
-        <span className="text-grove-text-dim">
-          Type: <span className="text-grove-text">{subject.type}</span>
-        </span>
-        <span className="text-grove-text-dim">
-          Initial Score: <span className="text-grove-text font-mono">{(subject.initialScore * 100).toFixed(0)}</span>
-        </span>
-      </div>
-
-      {/* Keywords */}
-      <div className="mb-3">
-        <span className="text-xs text-grove-text-dim uppercase">Keywords:</span>
-        <div className="flex flex-wrap gap-1 mt-1">
-          {subject.keywords.slice(0, 6).map((kw, i) => (
-            <span key={i} className="px-2 py-0.5 bg-grove-bg3 text-xs font-mono text-grove-text">
-              {kw}
-            </span>
-          ))}
-          {subject.keywords.length > 6 && (
-            <span className="px-2 py-0.5 text-xs text-grove-text-dim">
-              +{subject.keywords.length - 6} more
-            </span>
-          )}
+        <div className="text-right">
+          <div className="text-3xl font-mono text-grove-amber font-bold">
+            {(subject.initialScore * 100).toFixed(0)}
+          </div>
+          <div className="text-xs text-grove-text-dim uppercase">Score</div>
         </div>
       </div>
 
-      {/* Aliases */}
-      {subject.aliases.length > 0 && (
-        <div className="mb-3">
-          <span className="text-xs text-grove-text-dim uppercase">Aliases:</span>
-          <span className="ml-2 text-sm text-grove-text">
-            {subject.aliases.join(', ')}
+      {/* Rationale - Parsed into sections */}
+      <div className="mb-4 space-y-3">
+        {rationaleSections.map((section, i) => (
+          <div key={i}>
+            {section.header ? (
+              <>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-mono text-grove-amber uppercase tracking-wide">
+                    {section.header}
+                  </span>
+                  <span className="text-xs font-mono text-grove-text-dim">
+                    ({section.percentage})
+                  </span>
+                </div>
+                <p className="text-sm text-grove-text pl-0 leading-relaxed">
+                  {stripCitations(section.content)}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-grove-text leading-relaxed">
+                {stripCitations(section.content)}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Keywords as compact tags */}
+      <div className="flex flex-wrap gap-1 mb-4">
+        {subject.keywords.slice(0, 8).map((kw, i) => (
+          <span key={i} className="px-2 py-0.5 bg-grove-bg3 text-xs font-mono text-grove-text-dim">
+            {kw}
           </span>
-        </div>
-      )}
-
-      {/* Rationale */}
-      <p className="text-sm text-grove-text-dim mb-4 italic">"{subject.rationale}"</p>
+        ))}
+        {subject.keywords.length > 8 && (
+          <span className="px-2 py-0.5 text-xs text-grove-text-dim">
+            +{subject.keywords.length - 8}
+          </span>
+        )}
+      </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pt-3 border-t border-grove-border">
         <button
           onClick={onApprove}
           className="px-4 py-2 bg-zone-green text-white text-sm font-mono hover:bg-zone-green/80 transition-colors"
@@ -375,6 +433,11 @@ function SubjectProposalCard({
         >
           Discard
         </button>
+        {subject.aliases.length > 0 && (
+          <span className="ml-auto text-xs text-grove-text-dim">
+            aka: {subject.aliases.slice(0, 2).join(', ')}
+          </span>
+        )}
       </div>
     </div>
   )
