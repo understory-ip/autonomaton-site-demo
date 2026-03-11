@@ -127,7 +127,17 @@ export function InteractionPane() {
     <div className="flex-1 border-r border-grove-border bg-grove-bg2 flex flex-col min-h-0">
       {/* Interaction List */}
       <div className="flex-1 p-6 overflow-y-auto scrollbar-thin min-h-0">
-        {state.interactions.length === 0 ? (
+        {/* Standalone DiagnosticCard for early-stage halts (before interaction created) */}
+        {pipeline.halted && pipeline.haltReason && !state.interactions.some(i => i.status === 'halted') && (
+          <div className="mb-4">
+            <DiagnosticCard
+              reason={pipeline.haltReason}
+              onReset={() => dispatch({ type: 'RESET_PIPELINE' })}
+            />
+          </div>
+        )}
+
+        {state.interactions.length === 0 && !pipeline.halted ? (
           <div className="text-center py-12">
             <p className="text-xl font-serif text-grove-text mb-2">Welcome to the Pattern Playground</p>
             <p className="text-sm text-grove-text-dim mb-8">
