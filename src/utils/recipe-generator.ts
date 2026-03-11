@@ -42,12 +42,34 @@ This file contains the complete configuration for ${recipe.name} — ${recipe.de
 
 `
 
+  // Track whether we've added the knowledge layer header
+  let knowledgeHeaderAdded = false
+
   // Add each file as a markdown section with code block
   for (const file of recipe.files) {
+    // Detect knowledge files and add section header before the first one
+    const isKnowledgeFile = file.filename.startsWith('knowledge/')
+    if (isKnowledgeFile && !knowledgeHeaderAdded) {
+      markdown += `## Knowledge Layer
+
+> These markdown files are loaded as context during analysis.
+> They shape HOW the system thinks, not WHAT it monitors.
+> Replace them with your domain expertise, a RAG endpoint,
+> a Notion export, or any markdown source. The pipeline reads it the same way.
+
+---
+
+`
+      knowledgeHeaderAdded = true
+    }
+
+    // Use markdown language tag for .md files, typescript for others
+    const languageTag = file.filename.endsWith('.md') ? 'markdown' : 'typescript'
+
     markdown += `## ${file.filename}
 > ${file.description}
 
-\`\`\`typescript
+\`\`\`${languageTag}
 ${file.content.trim()}
 \`\`\`
 
