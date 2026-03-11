@@ -196,11 +196,23 @@ function normalizeDelta(value: number): number {
 }
 
 export function parseScanResponse(text: string): ScanResponse {
-  // Extract JSON from response (may be wrapped in markdown code blocks)
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
+  // Strip markdown code blocks first
+  let cleaned = text
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim()
+
+  // Strip any <cite> tags from the text before parsing
+  cleaned = cleaned
+    .replace(/<cite[^>]*>([\s\S]*?)<\/cite>/gi, '$1')
+    .replace(/<cite[^>]*>/gi, '')
+    .replace(/<\/cite>/gi, '')
+
+  // Extract JSON from response
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
     return {
-      summary: text.slice(0, 500),
+      summary: cleaned.slice(0, 500),
       zone: 'green',
       highlights: [{ text: 'Raw analysis returned - see summary', zone: 'green' }],
     }
