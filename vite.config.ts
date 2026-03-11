@@ -12,7 +12,7 @@ try {
 
 export default defineConfig({
   plugins: [react()],
-  base: '/autonomaton-demo/',
+  base: '/',
   define: {
     __COMMIT_HASH__: JSON.stringify(commitHash),
   },
