@@ -96,23 +96,26 @@ export async function processInteraction(
     return
   }
 
-  // v0.9.9: Early Andon Cord — Validate API key at compilation, not execution
-  // This prevents false Yellow Zone approval cards for unconfigured tiers
-  if (state.mode === 'interactive' && decision.tier > 0) {
+  // Andon Gate: Quality gate at compilation
+  // Single source of truth: localStorage (where Header.tsx stores the API key)
+  // Proceed if: demo mode OR API key is present in localStorage
+  const hasApiKey = typeof window !== 'undefined' &&
+    !!localStorage.getItem('signal_watch_api_key')?.trim()
+
+  if (decision.tier > 0 && state.mode !== 'demo' && !hasApiKey) {
     const tierKey = `tier${decision.tier}` as keyof typeof state.modelConfig
     const tierConfig = state.modelConfig[tierKey]
-    if (!tierConfig.apiKey) {
-      dispatch({
-        type: 'HALT_PIPELINE',
-        reason: {
-          stage: 'compilation',
-          error: `Missing API Key: Tier ${decision.tier} (${tierConfig.model}) requires credentials`,
-          expected: `API key configured in models.config for ${tierConfig.provider || 'provider'}`,
-          proposedFix: `Add API key for ${tierConfig.model} in Config panel, or switch to Demo mode for simulated responses`,
-        },
-      })
-      return
-    }
+
+    dispatch({
+      type: 'HALT_PIPELINE',
+      reason: {
+        stage: 'compilation',
+        error: `Missing API Key: Tier ${decision.tier} (${tierConfig.model}) requires credentials`,
+        expected: `Anthropic API key configured in header`,
+        proposedFix: `Click "Configure" in the header to add your Anthropic API key`,
+      },
+    })
+    return
   }
 
   // Calculate pattern count BEFORE creating interaction (for badge display)
