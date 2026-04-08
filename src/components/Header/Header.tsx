@@ -76,7 +76,7 @@ export function Header() {
 
         {/* CENTER: GitHub CTA */}
         <a
-          href="https://github.com/twocash/autonomaton-demo"
+          href="https://github.com/understory-ip/autonomaton-primitive"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-xs text-grove-text-dim hover:text-grove-amber transition-colors"
