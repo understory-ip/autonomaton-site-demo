@@ -47,7 +47,7 @@ const SUBJECTS_STORAGE_KEY = 'signal_watch_subjects'
 const TRAINING_COMPLETE_KEY = 'signal_watch_training_complete'
 const DOMAIN_CONFIG_KEY = 'signal_watch_domain_config'
 
-const APP_VERSION = '0.2.0'
+const APP_VERSION = '1.0.0'
 declare const __COMMIT_HASH__: string
 
 // Load from localStorage — start empty for training mode
@@ -1402,7 +1402,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-grove-border px-6 py-2 text-center text-xs text-grove-text-dim font-mono">
-        Grove Autonomaton Pattern v1.0 Demo •{' '}
+        Grove Autonomaton Pattern v{APP_VERSION} Demo •{' '}
         <a
           href="https://the-grove.ai"
           target="_blank"
