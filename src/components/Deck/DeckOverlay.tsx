@@ -92,11 +92,19 @@ export function DeckOverlay() {
             onClick={closeDeck}
             className="w-full py-3 bg-grove-amber text-grove-bg font-mono text-xs uppercase tracking-widest hover:bg-grove-amber-bright transition-colors"
           >
-            [ Enter Sandbox ]
+            [ Enter Demo ]
           </button>
 
+          <a
+            href="https://github.com/understory-ip/autonomaton_docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-center font-mono text-[10px] text-grove-amber hover:text-grove-amber-bright transition-colors tracking-wider"
+          >
+            Read the Documentation →
+          </a>
+
           <div className="font-mono text-[9px] text-grove-text-dim leading-relaxed uppercase tracking-wider">
-            <span className="text-grove-red font-bold">Confidential Preview</span><br/>
             © 2025-2026 the-grove.ai<br/>
             CC BY 4.0 License
           </div>
@@ -137,7 +145,7 @@ export function DeckOverlay() {
               onClick={closeDeck}
               className="text-grove-amber hover:text-grove-amber-bright font-mono text-xs uppercase tracking-widest cursor-pointer px-4 py-2 flex items-center gap-2"
             >
-              Enter Sandbox <span className="text-lg">→</span>
+              Enter Demo <span className="text-lg">→</span>
             </button>
           ) : (
             <button

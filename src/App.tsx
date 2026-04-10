@@ -25,6 +25,7 @@ import { SignalFeed } from './components/SignalFeed'
 import { WatchlistDashboard, SubjectDetailPane } from './components/Watchlist'
 import { CommandBar } from './components/CommandBar'
 import { NavBar } from './components/Navigation'
+import { DeckOverlay } from './components/Deck'
 import { DashboardView } from './components/Dashboard'
 import { ConfigPanel } from './components/Config'
 import { FlywheelView } from './components/Flywheel'
@@ -1396,19 +1397,21 @@ export default function App() {
         />
       )}
 
+      {/* Deck Overlay — auto-opens on first visit */}
+      <DeckOverlay />
+
       {/* Footer */}
       <footer className="border-t border-grove-border px-6 py-2 text-center text-xs text-grove-text-dim font-mono">
-        Signal Watch • Built on{' '}
+        Grove Autonomaton Pattern v1.0 Demo •{' '}
         <a
           href="https://the-grove.ai"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:text-grove-text transition-colors"
         >
-          Grove Autonomaton Pattern
+          The Grove Foundation
         </a>
-        {' '}• v{APP_VERSION}{' '}
-        <span className="text-grove-text-dim">#{__COMMIT_HASH__}</span>
+        {' '}• For educational purposes only — may contain bugs
       </footer>
     </div>
   )

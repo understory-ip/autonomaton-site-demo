@@ -575,9 +575,16 @@ function SlideFinal({ active }: { active: boolean }) {
           <p className="font-mono text-[12px] text-grove-amber">All yes → You built a Grove Autonomaton.</p>
           <p className="font-mono text-[12px] text-grove-text-dim mt-2">Any no → You know exactly what to fix.</p>
           <div className="mt-6 p-4 border border-grove-border">
-            <div className="font-mono text-[10px] text-grove-amber mb-2">REFERENCE IMPLEMENTATION</div>
-            <div className="font-mono text-[12px] text-grove-text-dim">Autonomaton Primitive — github.com/understory-ip/autonomaton-primitive</div>
-            <div className="text-[12px] text-grove-text-dim mt-2">License: CC BY 4.0 — The pattern is open because the thesis requires it.</div>
+            <div className="font-mono text-[10px] text-grove-amber mb-3">OPEN SOURCE</div>
+            <div className="font-mono text-[11px] text-grove-text-mid leading-[1.8]">
+              <a href="https://github.com/understory-ip/autonomaton_docs" target="_blank" rel="noopener" className="text-grove-amber hover:underline">Documentation</a>
+              <span className="text-grove-text-dim"> — Official pattern specification</span><br />
+              <a href="https://github.com/understory-ip/autonomaton-primitive" target="_blank" rel="noopener" className="text-grove-amber hover:underline">Reference Primitive</a>
+              <span className="text-grove-text-dim"> — Python implementation</span><br />
+              <a href="https://github.com/understory-ip/autonomaton-site-demo" target="_blank" rel="noopener" className="text-grove-amber hover:underline">Sandbox Demo</a>
+              <span className="text-grove-text-dim"> — This interactive presentation</span>
+            </div>
+            <div className="text-[11px] text-grove-text-dim mt-2.5">License: CC BY 4.0 — The pattern is open because the thesis requires it.</div>
           </div>
         </div>
       </div>

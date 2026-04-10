@@ -81,7 +81,7 @@ export function CoreApp({
         <footer className="border-t border-grove-border px-6 py-2 text-center text-xs text-grove-text-dim font-mono">
           Built on{' '}
           <a
-            href="https://github.com/the-grove/grove-autonomaton"
+            href="https://github.com/understory-ip/autonomaton_docs"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-grove-text transition-colors"
